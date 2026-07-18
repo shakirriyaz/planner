@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matchday — Daily Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f141b;
+    --bg-elevated:#171e28;
+    --bg-card:#1b232e;
+    --line: rgba(255,255,255,0.08);
+    --gold:#e3a73b;
+    --gold-dim: rgba(227,167,59,0.15);
+    --teal:#2f9077;
+    --teal-dim: rgba(47,144,119,0.15);
+    --text:#f3eee4;
+    --muted:#8b96a3;
+    --muted-2:#5c6673;
+    --danger:#c0654f;
+  }
+  html[data-theme="light"]{
+    --bg:#f7f3ea; --bg-elevated:#ffffff; --bg-card:#ffffff; --line: rgba(20,20,20,0.09);
+    --gold:#b9761f; --gold-dim: rgba(185,118,31,0.12);
+    --teal:#1f7a63; --teal-dim: rgba(31,122,99,0.12);
+    --text:#221c14; --muted:#6a6357; --muted-2:#9b9385;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(227,167,59,0.08), transparent),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:20px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+
+  /* header */
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px;}
+  .topbar .day{
+    font-family:'Oswald',sans-serif; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.08em; font-size:13px; color:var(--gold);
+  }
+  .topbar .date{color:var(--muted); font-size:13px; margin-top:2px;}
+  .clock{
+    font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:20px;
+    color:var(--text); text-align:right;
+  }
+  .clock span{color:var(--muted-2); font-size:13px;}
+
+  /* match clock bar - signature element */
+  .matchbar-label{display:flex; justify-content:space-between; font-size:11px; color:var(--muted-2); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;}
+  .matchbar{
+    position:relative; height:34px; border-radius:6px; overflow:hidden;
+    display:flex; margin-bottom:6px; border:1px solid var(--line);
+  }
+  .matchbar .seg{height:100%; position:relative;}
+  .matchbar .seg.cat-sleep{background:#232c38;}
+  .matchbar .seg.cat-move{background:#2a3a3a;}
+  .matchbar .seg.cat-fast{background:#20262f;}
+  .matchbar .seg.cat-meal{background:rgba(227,167,59,0.22);}
+  .matchbar .seg.cat-work{background:#1c232c;}
+  .matchbar .seg.cat-football{background:rgba(47,144,119,0.35);}
+  .matchbar .seg.cat-rest{background:#1c232c;}
+  .matchbar .seg.cat-wind{background:#1a2029;}
+  .marker{
+    position:absolute; top:-4px; width:2px; height:42px; background:var(--gold);
+    box-shadow:0 0 8px rgba(227,167,59,0.7);
+  }
+  .marker::before{
+    content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
+    border-top:6px solid var(--gold);
+  }
+  .matchbar-foot{display:flex; justify-content:space-between; font-size:10px; color:var(--muted-2); margin-bottom:26px; font-family:'IBM Plex Mono',monospace;}
+
+  /* now / next cards */
+  .now-card{
+    background:linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+    border:1px solid rgba(227,167,59,0.35);
+    border-radius:14px; padding:22px 20px; margin-bottom:14px;
+    position:relative; overflow:hidden;
+  }
+  .now-card::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--gold);
+  }
+  .tag{
+    font-family:'Oswald',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--gold); display:flex; align-items:center; gap:6px;
+  }
+  .tag .dot{width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  .now-title{font-family:'Oswald',sans-serif; font-size:26px; font-weight:700; margin:8px 0 6px; line-height:1.15;}
+  .now-time{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:10px;}
+  .now-desc{font-size:14px; color:#cdd3da; line-height:1.55;}
+
+  .next-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:14px;
+    padding:16px 20px; margin-bottom:26px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .next-card .l .tag{color:var(--muted);}
+  .next-card .l .tag .dot{background:var(--muted); box-shadow:none; animation:none;}
+  .next-card .l .title{font-family:'Oswald',sans-serif; font-size:16px; font-weight:600; margin-top:4px;}
+  .next-card .r{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--gold); text-align:right; white-space:nowrap;}
+
+  /* recipe box */
+  .recipe-box{
+    margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .recipe-box .rlabel{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted-2); font-family:'Oswald',sans-serif; margin-bottom:8px;}
+  .recipe-opt{font-size:13px; color:#cdd3da; margin-bottom:6px; padding-left:14px; position:relative;}
+  .recipe-opt::before{content:'—'; position:absolute; left:0; color:var(--gold);}
+
+  /* timeline */
+  h2.section-title{
+    font-family:'Oswald',sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:0.1em;
+    color:var(--muted); margin:6px 0 12px;
+  }
+  .timeline{border-left:2px solid var(--line); padding-left:18px; margin-left:6px;}
+  .t-item{position:relative; padding-bottom:20px;}
+  .t-item::before{
+    content:''; position:absolute; left:-24px; top:3px; width:10px; height:10px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--muted-2);
+  }
+  .t-item.done::before{background:var(--muted-2); border-color:var(--muted-2);}
+  .t-item.current::before{background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 4px rgba(227,167,59,0.18);}
+  .t-item.done .t-title, .t-item.done .t-time{color:var(--muted-2);}
+  .t-time{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:2px;}
+  .t-title{font-family:'Oswald',sans-serif; font-size:15px; font-weight:600;}
+  .t-item.current .t-title{color:var(--gold);}
+  .t-desc{font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.45;}
+
+  /* week strip */
+  .weekstrip{display:flex; gap:6px; margin:26px 0 8px;}
+  .wday{
+    flex:1; text-align:center; padding:8px 2px; border-radius:8px; background:var(--bg-card);
+    border:1px solid var(--line); font-family:'Oswald',sans-serif;
+  }
+  .wday .wl{font-size:10px; color:var(--muted-2); text-transform:uppercase;}
+  .wday .wm{font-size:10px; margin-top:3px; color:var(--muted);}
+  .wday.today{border-color:var(--gold); background:var(--gold-dim);}
+  .wday.today .wl{color:var(--gold);}
+  .wday.football .wm{color:var(--teal);}
+
+  /* preview control */
+  .preview{
+    margin-top:30px; padding:14px 16px; background:var(--bg-card); border:1px dashed var(--line);
+    border-radius:10px; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;
+  }
+  .preview input[type=time]{
+    background:var(--bg-elevated); border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:5px 8px; font-family:'IBM Plex Mono',monospace; font-size:13px;
+  }
+  .preview button{
+    background:var(--gold); color:#1a1204; border:none; border-radius:6px; padding:6px 12px;
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;
+  }
+  .preview .resetbtn{background:transparent; color:var(--muted); border:1px solid var(--line);}
+
+  footer{text-align:center; color:var(--muted-2); font-size:11px; margin-top:34px;}
+
+  .pagenav{display:flex; gap:8px; margin-bottom:20px;}
+  .navlink{
+    flex:1; text-align:center; padding:9px 4px; border-radius:8px; text-decoration:none;
+    font-family:'Oswald',sans-serif; font-size:12.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase;
+    background:var(--bg-card); color:var(--muted); border:1px solid var(--line);
+  }
+  .navlink.active{background:var(--gold-dim); color:var(--gold); border-color:rgba(227,167,59,0.4);}
+  .themebtn{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:var(--bg-card);
+    font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <div class="day" id="dayLabel">—</div>
+      <div class="date" id="dateLabel">—</div>
+    </div>
+    <div style="display:flex; align-items:flex-start; gap:10px;">
+      <div class="clock" id="clockLabel">--:--<span> </span></div>
+      <button class="themebtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+    </div>
+  </div>
+
+  <nav class="pagenav">
+    <a href="index.html" class="navlink active">Today</a>
+    <a href="recipes.html" class="navlink">Recipes &amp; Exercises</a>
+  </nav>
+
+  <div class="matchbar-label"><span>05:00</span><span>MATCH CLOCK</span><span>22:30</span></div>
+  <div class="matchbar" id="matchbar"></div>
+  <div class="matchbar-foot">
+    <span>▉ sleep/fast</span><span>▉ meal</span><span>▉ football</span><span>▉ work/rest</span>
+  </div>
+
+  <div class="now-card">
+    <div class="tag"><span class="dot"></span>Right now</div>
+    <div class="now-title" id="nowTitle">—</div>
+    <div class="now-time" id="nowTime">—</div>
+    <div class="now-desc" id="nowDesc">—</div>
+    <div class="recipe-box" id="nowRecipeBox" style="display:none;">
+      <div class="rlabel">Pick one</div>
+      <div id="nowRecipeList"></div>
+    </div>
+  </div>
+
+  <div class="next-card">
+    <div class="l">
+      <div class="tag">Up next</div>
+      <div class="title" id="nextTitle">—</div>
+    </div>
+    <div class="r" id="nextIn">—</div>
+  </div>
+
+  <div class="weekstrip" id="weekstrip"></div>
+
+  <h2 class="section-title">Full day timeline</h2>
+  <div class="timeline" id="timeline"></div>
+
+  <div class="preview">
+    <span>Preview a different time →</span>
+    <input type="time" id="previewInput">
+    <button onclick="applyPreview()">Show</button>
+    <button class="resetbtn" onclick="resetPreview()">Now</button>
+  </div>
+
+  <footer>Built for your routine · edit the SCHEDULE array in this file anytime your plan changes</footer>
+</div>
+
+<script>
+// ---- SCHEDULE DEFINITION (all times in minutes from midnight) ----
+const toMin = (h,m) => h*60+m;
+
+function baseSchedule(day){
+  // day: 0=Sun..6=Sat
+  const isStrengthDay = [1,3,5].includes(day); // Mon/Wed/Fri
+  const isFootballDay = [2,4].includes(day); // Tue/Thu
+
+  return [
+    { start: toMin(5,0), end: toMin(5,25), cat:'move', title:'Wake + Morning Movement',
+      desc: isStrengthDay ? 'Water first. 15–20 min bodyweight strength: squats, push-ups, lunges, planks.' : 'Water first. Light 10 min stretch/mobility — no pressure today.' },
+    { start: toMin(5,25), end: toMin(6,0), cat:'work', title:'Get Ready', desc:'Shower, get dressed, out the door.' },
+    { start: toMin(6,0), end: toMin(12,0), cat:'fast', title:'Fasted Window', desc:'Black tea/coffee only, no sugar. Commute + work. This is the fasting part of your 16:8 window.' },
+    { start: toMin(12,0), end: toMin(13,30), cat:'meal', title:'Lunch — Meal 1', desc:'Your biggest meal. Break the fast here, then relax before the nap.', meal:'lunch' },
+    { start: toMin(13,30), end: toMin(13,50), cat:'move', title:'Nap', desc:'20 min, hard alarm. Best natural post-lunch dip slot — won\'t affect night sleep.' },
+    { start: toMin(13,50), end: toMin(16,0), cat:'work', title:'Work', desc:'Second block of the day.' },
+    { start: toMin(16,0), end: toMin(16,30), cat:'meal', title:'Snack', desc:'Light protein snack — keeps you out of the biscuit/tea trap.', meal:'snack' },
+    { start: toMin(16,30), end: toMin(18,0), cat:'work', title:'Work / Commute', desc:'Wrap up for the day.' },
+    { start: toMin(18,0), end: toMin(19,30), cat: isFootballDay ? 'football' : 'rest',
+      title: isFootballDay ? 'Football' : 'Free / Rest',
+      desc: isFootballDay ? 'Your main cardio session for the week — give it everything.' : 'No forced activity. Rest, or a slow walk if you feel like it.' },
+    { start: toMin(19,30), end: toMin(20,0), cat:'meal', title:'Dinner — Meal 2', desc:'Lighter than lunch. Closes your eating window at 8:00 PM.', meal:'dinner' },
+    { start: toMin(20,0), end: toMin(21,45), cat:'wind', title:'Wind Down', desc:'No screens, dim lights. This is what actually makes an early bedtime possible.' },
+    { start: toMin(21,45), end: toMin(22,0), cat:'wind', title:'Prayers', desc:'—' },
+    { start: toMin(22,0), end: toMin(22,30), cat:'wind', title:'Final Wind-down', desc:'Lights low, phone away.' },
+    { start: toMin(22,30), end: toMin(24,0)+toMin(5,0), cat:'sleep', title:'Sleep', desc:'Target: 6.5–7 hrs. Protect this as strictly as the wake-up time.' },
+  ];
+}
+
+const MEALS = {
+  lunch: [
+    'Chicken Curry (200g chicken, onion-tomato gravy) + 1 roti + salad — ~48g protein',
+    'Egg Curry (3 eggs in gravy) + 1 cup dal + roti — ~33g protein',
+    'Tandoori/Grilled Chicken (200g, curd-marinated) + dal + salad — ~48g protein'
+  ],
+  snack: [
+    '2 boiled eggs',
+    '1 cup plain curd (unsweetened)',
+    'Small roasted chana (save for football days)'
+  ],
+  dinner: [
+    'Egg Bhurji (3 eggs) + sautéed vegetables — ~21g protein',
+    'Chicken Stir-fry (150g) + mixed veg — ~38g protein',
+    'Clear Chicken Soup (200g bone-in) + veg — ~40g protein, easy on football evenings'
+  ]
+};
+
+const CAT_LABEL = {sleep:'Sleep', move:'Movement', fast:'Fasted', meal:'Meal', work:'Work', football:'Football', rest:'Rest', wind:'Wind-down'};
+
+let previewMinutes = null; // null = use real clock
+
+function currentDayAndMinutes(){
+  const now = new Date();
+  if(previewMinutes !== null){
+    return { day: now.getDay(), minutes: previewMinutes, realNow: now };
+  }
+  return { day: now.getDay(), minutes: now.getHours()*60+now.getMinutes(), realNow: now };
+}
+
+function render(){
+  const { day, minutes, realNow } = currentDayAndMinutes();
+  const sched = baseSchedule(day);
+  const DAY_LEN = 24*60; // for wrap comparisons we treat sleep block specially
+
+  // header
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('dayLabel').textContent = dayNames[day];
+  document.getElementById('dateLabel').textContent = realNow.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
+  const hh = String(Math.floor(minutes/60)%24).padStart(2,'0');
+  const mm = String(minutes%60).padStart(2,'0');
+  document.getElementById('clockLabel').innerHTML = hh+':'+mm+'<span> '+(previewMinutes!==null?'(preview)':'')+'</span>';
+
+  // find current + next among the "active day" blocks (5:00-22:30), else sleep
+  const DAY_START = toMin(5,0), DAY_END = toMin(22,30);
+  let current = null, next = null;
+  let effectiveMin = minutes;
+  if(minutes < DAY_START){
+    // still within overnight sleep block that started yesterday
+    current = sched[sched.length-1];
+    next = sched[0];
+  } else if(minutes >= DAY_END){
+    current = sched[sched.length-1];
+    next = sched[0]; // tomorrow's wake block
+  } else {
+    for(let i=0;i<sched.length-1;i++){
+      if(effectiveMin >= sched[i].start && effectiveMin < sched[i].end){ current = sched[i]; next = sched[i+1]; break; }
+    }
+  }
+
+  // NOW card
+  document.getElementById('nowTitle').textContent = current.title;
+  const fmt = m => { const h=Math.floor((m%1440)/60), mi=m%60; return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); };
+  document.getElementById('nowTime').textContent = fmt(current.start)+' – '+fmt(current.end > 1440 ? current.end-1440 : current.end);
+  document.getElementById('nowDesc').textContent = current.desc;
+
+  const recipeBox = document.getElementById('nowRecipeBox');
+  if(current.meal){
+    recipeBox.style.display = 'block';
+    document.getElementById('nowRecipeList').innerHTML = MEALS[current.meal].map(r=>`<div class="recipe-opt">${r}</div>`).join('');
+  } else { recipeBox.style.display = 'none'; }
+
+  // NEXT card
+  document.getElementById('nextTitle').textContent = next.title;
+  let mins_until;
+  if(minutes >= DAY_END || minutes < DAY_START){
+    // counting down to 5:00 wake
+    const wakeAbs = minutes < DAY_START ? DAY_START : DAY_START+1440;
+    mins_until = wakeAbs - minutes;
+  } else {
+    mins_until = next.start - minutes;
+  }
+  const hUntil = Math.floor(mins_until/60), mUntil = mins_until%60;
+  document.getElementById('nextIn').textContent = (hUntil>0?hUntil+'h ':'')+mUntil+'m';
+
+  // TIMELINE
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = sched.map(item=>{
+    const isCurrent = item===current;
+    const isDone = !isCurrent && (minutes >= DAY_START && minutes < DAY_END) && item.end <= minutes && item.start < DAY_END;
+    const cls = isCurrent ? 'current' : (isDone ? 'done' : '');
+    return `<div class="t-item ${cls}">
+      <div class="t-time">${fmt(item.start)} – ${fmt(item.end>1440?item.end-1440:item.end)}</div>
+      <div class="t-title">${item.title}</div>
+      <div class="t-desc">${item.desc}</div>
+    </div>`;
+  }).join('');
+
+  // MATCH BAR
+  const bar = document.getElementById('matchbar');
+  const totalSpan = DAY_END - DAY_START;
+  bar.innerHTML = sched.filter(it=>it.start < DAY_END && it.end > DAY_START).map(it=>{
+    const s = Math.max(it.start, DAY_START), e = Math.min(it.end, DAY_END);
+    const widthPct = ((e-s)/totalSpan*100).toFixed(3);
+    return `<div class="seg cat-${it.cat}" style="width:${widthPct}%"></div>`;
+  }).join('');
+  let markerPct = 0;
+  if(minutes >= DAY_START && minutes < DAY_END){
+    markerPct = ((minutes-DAY_START)/totalSpan*100);
+  } else if(minutes < DAY_START){ markerPct = 0; } else { markerPct = 100; }
+  const marker = document.createElement('div');
+  marker.className='marker';
+  marker.style.left = markerPct+'%';
+  bar.appendChild(marker);
+
+  // WEEK STRIP
+  const wnames = ['S','M','T','W','T','F','S'];
+  const ws = document.getElementById('weekstrip');
+  ws.innerHTML = wnames.map((n,i)=>{
+    const isToday = i===day;
+    const isFootball = [2,4].includes(i);
+    return `<div class="wday ${isToday?'today':''} ${isFootball?'football':''}">
+      <div class="wl">${n}</div>
+      <div class="wm">${isFootball?'⚽':'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function applyPreview(){
+  const val = document.getElementById('previewInput').value;
+  if(!val) return;
+  const [h,m] = val.split(':').map(Number);
+  previewMinutes = h*60+m;
+  render();
+}
+function resetPreview(){
+  previewMinutes = null;
+  document.getElementById('previewInput').value='';
+  render();
+}
+
+function toggleTheme(){
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+}
+(function initTheme(){
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  document.documentElement.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('themeBtn').textContent = prefersLight ? '☀️' : '🌙';
+  });
+})();
+
+render();
+setInterval(()=>{ if(previewMinutes===null) render(); }, 30000);
+</script>
+</body>
+</html>
