@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipes & Exercises</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f141b; --bg-elevated:#171e28; --bg-card:#1b232e; --line: rgba(255,255,255,0.08);
+    --gold:#e3a73b; --gold-dim: rgba(227,167,59,0.15);
+    --teal:#2f9077; --teal-dim: rgba(47,144,119,0.15);
+    --text:#f3eee4; --muted:#8b96a3; --muted-2:#5c6673;
+  }
+  html[data-theme="light"]{
+    --bg:#f7f3ea; --bg-elevated:#ffffff; --bg-card:#ffffff; --line: rgba(20,20,20,0.09);
+    --gold:#b9761f; --gold-dim: rgba(185,118,31,0.12);
+    --teal:#1f7a63; --teal-dim: rgba(31,122,99,0.12);
+    --text:#221c14; --muted:#6a6357; --muted-2:#9b9385;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: radial-gradient(ellipse 900px 500px at 50% -10%, rgba(227,167,59,0.08), transparent), var(--bg);
+    color:var(--text); font-family:'Inter', sans-serif; min-height:100vh; padding:20px 16px 60px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+  h1{font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; margin-bottom:2px;}
+  .headrow{display:flex; justify-content:space-between; align-items:center;}
+  .themebtn{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--bg-card);
+    font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
+
+  .pagenav{display:flex; gap:8px; margin-bottom:20px;}
+  .navlink{
+    flex:1; text-align:center; padding:9px 4px; border-radius:8px; text-decoration:none;
+    font-family:'Oswald',sans-serif; font-size:12.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase;
+    background:var(--bg-card); color:var(--muted); border:1px solid var(--line);
+  }
+  .navlink.active{background:var(--gold-dim); color:var(--gold); border-color:rgba(227,167,59,0.4);}
+
+  .maintabs{display:flex; gap:8px; margin-bottom:18px;}
+  .maintab{
+    flex:1; padding:11px 4px; text-align:center; border-radius:10px; cursor:pointer; user-select:none;
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; letter-spacing:0.05em; text-transform:uppercase;
+    background:var(--bg-card); border:1px solid var(--line); color:var(--muted);
+  }
+  .maintab.active{background:var(--teal-dim); color:var(--teal); border-color:rgba(47,144,119,0.4);}
+
+  .view{display:none;} .view.active{display:block;}
+
+  /* diet subtabs */
+  .subtabs{display:flex; gap:6px; margin-bottom:16px;}
+  .subtab{
+    padding:7px 14px; border-radius:20px; font-size:12.5px; font-family:'Inter',sans-serif; font-weight:600;
+    background:var(--bg-card); border:1px solid var(--line); color:var(--muted); cursor:pointer;
+  }
+  .subtab.active{background:var(--gold-dim); color:var(--gold); border-color:rgba(227,167,59,0.4);}
+
+  .recipe-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:14px; margin-bottom:12px; overflow:hidden;
+  }
+  .recipe-head{padding:15px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .recipe-name{font-family:'Oswald',sans-serif; font-size:16px; font-weight:600;}
+  .recipe-badges{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+  .badge{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:5px; background:var(--bg-elevated); color:var(--muted);}
+  .badge.kcal{color:var(--gold);}
+  .badge.protein{color:var(--teal);}
+  .chev{color:var(--muted-2); font-size:18px; transition:transform 0.2s;}
+  .recipe-card.open .chev{transform:rotate(180deg);}
+  .recipe-body{max-height:0; overflow:hidden; transition:max-height 0.25s ease; padding:0 16px;}
+  .recipe-card.open .recipe-body{max-height:600px; padding:0 16px 16px;}
+  .recipe-body h4{font-family:'Oswald',sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted-2); margin:10px 0 6px;}
+  .recipe-body ul{padding-left:18px; font-size:13px; color:#cdd3da; line-height:1.6;}
+  .recipe-body p{font-size:13px; color:#cdd3da; line-height:1.6;}
+  .macros{display:flex; gap:14px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted);}
+
+  /* exercises */
+  .daytoggle{display:flex; gap:6px; margin-bottom:16px;}
+  .exercise-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px;
+  }
+  .ex-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .ex-name{font-family:'Oswald',sans-serif; font-size:15px; font-weight:600;}
+  .ex-target{font-size:11px; color:var(--muted-2); font-family:'IBM Plex Mono',monospace;}
+  .ex-cue{font-size:12.5px; color:var(--muted); margin:6px 0 12px; line-height:1.5;}
+  .sets-row{display:flex; gap:8px; align-items:center;}
+  .set-circle{
+    width:34px; height:34px; border-radius:50%; border:2px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); cursor:pointer; transition:all 0.15s; flex-shrink:0;
+  }
+  .set-circle.filled{background:var(--teal); border-color:var(--teal); color:#08150f; font-weight:600;}
+  .timer-btn{
+    margin-left:auto; background:var(--gold-dim); color:var(--gold); border:1px solid rgba(227,167,59,0.4);
+    border-radius:8px; padding:8px 12px; font-family:'Oswald',sans-serif; font-size:11.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.03em; cursor:pointer; white-space:nowrap;
+  }
+  .timer-btn.running{background:var(--gold); color:#1a1204;}
+  .progress-bar{height:5px; background:var(--bg-elevated); border-radius:3px; margin-top:12px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--teal); width:0%; transition:width 0.2s;}
+
+  .session-summary{
+    background:var(--bg-card); border:1px solid rgba(47,144,119,0.4); border-radius:14px; padding:16px; margin-bottom:16px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .session-summary .num{font-family:'Oswald',sans-serif; font-size:28px; font-weight:700; color:var(--teal);}
+  .session-summary .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;}
+  .resetall{background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:8px 12px; font-size:11.5px; cursor:pointer; font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em;}
+
+  footer{text-align:center; color:var(--muted-2); font-size:11px; margin-top:34px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="headrow">
+    <h1>Recipes &amp; Exercises</h1>
+    <button class="themebtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+  <div class="sub">Tap a recipe to expand · tap circles to log sets</div>
+
+  <nav class="pagenav">
+    <a href="index.html" class="navlink">Today</a>
+    <a href="recipes.html" class="navlink active">Recipes &amp; Exercises</a>
+  </nav>
+
+  <div class="maintabs">
+    <div class="maintab active" data-view="diet">Diet</div>
+    <div class="maintab" data-view="exercise">Exercises</div>
+  </div>
+
+  <!-- DIET VIEW -->
+  <div class="view active" id="view-diet">
+    <div class="subtabs" id="subtabs"></div>
+    <div id="recipeList"></div>
+  </div>
+
+  <!-- EXERCISE VIEW -->
+  <div class="view" id="view-exercise">
+    <div class="session-summary">
+      <div><div class="num" id="setsDone">0</div><div class="lbl">Sets logged today</div></div>
+      <button class="resetall" onclick="resetAllSets()">Reset</button>
+    </div>
+
+    <div class="daytoggle" id="daytoggle"></div>
+    <div id="exerciseList"></div>
+  </div>
+
+  <footer>Numbers are estimates for planning — actual values vary by brand/portion.</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const RECIPES = {
+  lunch: [
+    { name:'Chicken Curry (Home-style)', kcal:480, protein:48, carbs:18, fat:22,
+      ing:['Chicken breast/thigh, skinless — 200g, cubed','Onion — 1 medium, chopped','Tomato — 2 medium, pureed','Ginger-garlic paste — 1 tbsp','Curd — 2 tbsp','Turmeric, chili powder, coriander powder, garam masala, salt','Oil — 1 tsp'],
+      method:'Sauté onion in oil till golden. Add ginger-garlic paste, cook 1 min. Add tomato puree + spices, cook till oil separates (5-7 min). Add chicken, cover, cook 10-12 min till done. Stir in curd off heat, garnish with coriander. Serve with 1 roti + salad.' },
+    { name:'Egg Curry + Dal', kcal:540, protein:42, carbs:32, fat:20,
+      ing:['Boiled eggs — 3, halved','Onion-tomato gravy base (as above, no chicken)','Dal (moong/masoor) — 1 cup, cooked','Same spices as chicken curry'],
+      method:'Make the onion-tomato gravy base. Simmer boiled eggs in it 5 min so they soak up flavor. Serve with 1 cup dal on the side and 1 roti.' },
+    { name:'Tandoori / Grilled Chicken', kcal:430, protein:48, carbs:10, fat:20,
+      ing:['Chicken breast — 200g','Curd — 3 tbsp','Ginger-garlic paste, red chili powder, garam masala, lemon juice, salt'],
+      method:'Marinate chicken 30 min minimum (overnight better). Grill, pan-sear, or oven-bake at 200°C for 20-25 min. Serve with 1 cup dal + salad.' },
+    { name:'Grilled Fish Curry', kcal:410, protein:44, carbs:14, fat:18,
+      ing:['Firm white fish (rohu/pomfret/basa) — 200g','Onion-tomato gravy base (as chicken curry)','Mustard seeds, curry leaves, turmeric','Oil — 1 tsp'],
+      method:'Lightly pan-sear fish 2 min/side, set aside. Make onion-tomato gravy with mustard seeds + curry leaves tempering. Add fish back gently in last 5 min so it doesn\'t break apart. Serve with ½ cup rice + salad. Good rotation for your cholesterol — aim for fish 3-4x/week where possible.' },
+    { name:'Egg & Vegetable Stir-fry Bowl', kcal:390, protein:28, carbs:22, fat:18,
+      ing:['Eggs — 3','Mixed vegetables (capsicum, beans, cabbage, carrot) — 1.5 cups','Garlic, black pepper, light soy or salt','Oil — 1 tsp'],
+      method:'Scramble eggs separately, set aside. Stir-fry vegetables on high heat 4-5 min till just tender-crisp. Fold eggs back in, season, serve over ½ cup rice or as-is.' }
+  ],
+  snack: [
+    { name:'2 Boiled Eggs', kcal:140, protein:13, carbs:1, fat:10,
+      ing:['Eggs — 2, boiled'], method:'Boil for 9-10 min, peel, sprinkle salt & pepper.' },
+    { name:'Plain Curd', kcal:120, protein:10, carbs:8, fat:6,
+      ing:['Plain unsweetened curd — 1 cup','A few almonds, optional'], method:'Eat as-is, no sugar added. Add a few almonds if hungrier.' },
+    { name:'Roasted Chana', kcal:180, protein:8, carbs:24, fat:4,
+      ing:['Roasted chickpeas — ½ cup, no oil'], method:'Best saved for football days since it runs slightly higher calorie.' },
+    { name:'Grilled Paneer Cubes', kcal:160, protein:12, carbs:4, fat:11,
+      ing:['Paneer — 60g, cubed','Chaat masala, lemon, pinch of salt'], method:'Pan-sear on a dry non-stick pan 2-3 min per side, no oil needed. Squeeze lemon and dust chaat masala before eating.' },
+    { name:'Sprouts Salad', kcal:130, protein:9, carbs:18, fat:2,
+      ing:['Mixed sprouts (moong/chana) — 1 cup, steamed','Onion, tomato, lemon, chaat masala'], method:'Steam sprouts 5 min till just tender. Toss with chopped onion, tomato, lemon juice, and chaat masala.' }
+  ],
+  dinner: [
+    { name:'Egg Bhurji + Sautéed Veg', kcal:320, protein:21, carbs:8, fat:24,
+      ing:['Eggs — 3','Onion, tomato, green chili — chopped','Turmeric, chili powder, salt','Oil — 1 tsp','Coriander leaves'],
+      method:'Sauté onion till soft, add tomato + chili, cook till mushy, add spices. Crack in eggs, scramble till just set — don\'t overcook. Serve with sautéed lauki/bhindi/palak, skip roti most nights.' },
+    { name:'Chicken Stir-fry', kcal:350, protein:38, carbs:15, fat:14,
+      ing:['Chicken breast — 150g, sliced thin','Mixed vegetables (bell pepper, beans, cabbage, carrot) — 1.5 cups','Garlic, black pepper, salt','Oil — 1 tsp'],
+      method:'Stir-fry chicken on high heat till cooked through, remove. Stir-fry veg 4-5 min, add chicken back, toss together.' },
+    { name:'Clear Chicken Soup', kcal:300, protein:40, carbs:8, fat:10,
+      ing:['Chicken, bone-in, skinless — 200g','Garlic, ginger, black pepper, bay leaf','Carrot, beans, spinach','Water — 2-3 cups, salt'],
+      method:'Simmer chicken with aromatics 25-30 min till tender. Add vegetables in the last 10 min. Great on football evenings — light and easy to digest before bed.' },
+    { name:'Grilled Fish with Greens', kcal:310, protein:36, carbs:6, fat:14,
+      ing:['Firm white fish — 150g','Garlic, lemon, black pepper, pinch of chili flakes','Sautéed spinach/palak — 1.5 cups','Oil — 1 tsp'],
+      method:'Marinate fish briefly in lemon, garlic, pepper. Pan-sear or grill 3-4 min per side. Serve over sautéed greens — light, high protein, good for cholesterol.' },
+    { name:'Egg Drop Soup', kcal:260, protein:22, carbs:10, fat:14,
+      ing:['Eggs — 2, beaten','Vegetable or light chicken stock — 2 cups','Garlic, ginger, spring onion, black pepper','Cornflour — 1 tsp (optional, for slight thickness)'],
+      method:'Simmer stock with garlic and ginger 5 min. Drizzle in beaten eggs slowly while stirring to form ribbons. Season with pepper, top with spring onion — quick and light on heavy football-day nights.' }
+  ]
+};
+
+const EXERCISES = {
+  strength: [
+    { name:'Bodyweight Squats', target:'3 × 15', cue:'Feet shoulder-width, chest up, knees tracking over toes.', sets:3, timed:false },
+    { name:'Push-ups', target:'3 × 12', cue:'Drop to knees if needed — full range matters more than count.', sets:3, timed:false },
+    { name:'Walking Lunges', target:'3 × 10 per leg', cue:'Keep torso upright, front knee stays behind toes.', sets:3, timed:false },
+    { name:'Glute Bridges', target:'3 × 15', cue:'Squeeze glutes at the top, pause 1 sec.', sets:3, timed:false },
+    { name:'Plank Hold', target:'3 × 30 sec', cue:'Straight line head to heels, don\'t let hips sag.', sets:3, timed:true, seconds:30 }
+  ],
+  mobility: [
+    { name:'Cat-Cow Stretch', target:'10 reps', cue:'Slow, controlled — sync with breath.', sets:1, timed:false },
+    { name:'Hip Opener (90/90)', target:'45 sec/side', cue:'Sit tall, gently lean forward over front shin.', sets:2, timed:true, seconds:45 },
+    { name:'Standing Hamstring Stretch', target:'30 sec/side', cue:'Soft knee, hinge at hips not the back.', sets:2, timed:true, seconds:30 },
+    { name:'Shoulder Rolls + Arm Circles', target:'20 reps', cue:'Loosens up before the desk day starts.', sets:1, timed:false },
+    { name:'Deep Squat Hold', target:'40 sec', cue:'Heels down, chest up — opens hips and ankles.', sets:1, timed:true, seconds:40 }
+  ]
+};
+
+/* ---------------- STATE (in-memory only, resets on reload) ---------------- */
+let dietTab = 'lunch';
+let exerciseDay = 'strength';
+const setState = {}; // key: "day_exIdx_setIdx" -> bool
+let totalSetsLogged = 0;
+
+/* ---------------- MAIN TABS ---------------- */
+document.querySelectorAll('.maintab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.maintab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const v = tab.dataset.view;
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+  });
+});
+
+/* ---------------- DIET RENDER ---------------- */
+function renderSubtabs(){
+  const labels = {lunch:'Lunch', snack:'Snack', dinner:'Dinner'};
+  document.getElementById('subtabs').innerHTML = Object.keys(labels).map(k=>
+    `<div class="subtab ${k===dietTab?'active':''}" data-tab="${k}">${labels[k]}</div>`
+  ).join('');
+  document.querySelectorAll('.subtab').forEach(el=>{
+    el.addEventListener('click', ()=>{ dietTab = el.dataset.tab; renderSubtabs(); renderRecipes(); });
+  });
+}
+
+function renderRecipes(){
+  const list = RECIPES[dietTab];
+  document.getElementById('recipeList').innerHTML = list.map((r,i)=>`
+    <div class="recipe-card" id="rc-${dietTab}-${i}">
+      <div class="recipe-head" onclick="toggleRecipe('${dietTab}',${i})">
+        <div>
+          <div class="recipe-name">${r.name}</div>
+          <div class="recipe-badges">
+            <span class="badge kcal">${r.kcal} kcal</span>
+            <span class="badge protein">${r.protein}g protein</span>
+          </div>
+        </div>
+        <div class="chev">⌄</div>
+      </div>
+      <div class="recipe-body">
+        <h4>Ingredients</h4>
+        <ul>${r.ing.map(x=>`<li>${x}</li>`).join('')}</ul>
+        <h4>Method</h4>
+        <p>${r.method}</p>
+        <div class="macros"><span>Carbs: ${r.carbs}g</span><span>Fat: ${r.fat}g</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleRecipe(tab,i){
+  document.getElementById(`rc-${tab}-${i}`).classList.toggle('open');
+}
+
+/* ---------------- EXERCISE RENDER ---------------- */
+function renderDaytoggle(){
+  document.getElementById('daytoggle').innerHTML = `
+    <div class="subtab ${exerciseDay==='strength'?'active':''}" data-day="strength">Strength (Mon/Wed/Fri)</div>
+    <div class="subtab ${exerciseDay==='mobility'?'active':''}" data-day="mobility">Mobility (Other days)</div>
+  `;
+  document.querySelectorAll('#daytoggle .subtab').forEach(el=>{
+    el.addEventListener('click', ()=>{ exerciseDay = el.dataset.day; renderDaytoggle(); renderExercises(); });
+  });
+}
+
+function renderExercises(){
+  const list = EXERCISES[exerciseDay];
+  document.getElementById('exerciseList').innerHTML = list.map((ex,i)=>{
+    const circles = Array.from({length:ex.sets}).map((_,s)=>{
+      const key = `${exerciseDay}_${i}_${s}`;
+      const filled = setState[key];
+      return `<div class="set-circle ${filled?'filled':''}" onclick="toggleSet('${exerciseDay}',${i},${s})">${filled?'✓':s+1}</div>`;
+    }).join('');
+    const doneCount = Array.from({length:ex.sets}).filter((_,s)=>setState[`${exerciseDay}_${i}_${s}`]).length;
+    const pct = Math.round((doneCount/ex.sets)*100);
+    const timerBtn = ex.timed ? `<button class="timer-btn" id="timerbtn-${exerciseDay}-${i}" onclick="startTimer('${exerciseDay}',${i},${ex.seconds})">Start ${ex.seconds}s</button>` : '';
+    return `
+      <div class="exercise-card">
+        <div class="ex-head">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-target">${ex.target}</div>
+        </div>
+        <div class="ex-cue">${ex.cue}</div>
+        <div class="sets-row">${circles}${timerBtn}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleSet(day,i,s){
+  const key = `${day}_${i}_${s}`;
+  setState[key] = !setState[key];
+  totalSetsLogged += setState[key] ? 1 : -1;
+  document.getElementById('setsDone').textContent = totalSetsLogged;
+  renderExercises();
+}
+
+function resetAllSets(){
+  Object.keys(setState).forEach(k=>delete setState[k]);
+  totalSetsLogged = 0;
+  document.getElementById('setsDone').textContent = 0;
+  renderExercises();
+}
+
+function startTimer(day,i,seconds){
+  const btn = document.getElementById(`timerbtn-${day}-${i}`);
+  if(btn.classList.contains('running')) return;
+  let remaining = seconds;
+  btn.classList.add('running');
+  btn.textContent = remaining + 's';
+  const interval = setInterval(()=>{
+    remaining--;
+    if(remaining <= 0){
+      clearInterval(interval);
+      btn.classList.remove('running');
+      btn.textContent = 'Start '+seconds+'s';
+      btn.style.background = 'var(--teal)'; btn.style.color = '#08150f';
+      setTimeout(()=>{ btn.style.background=''; btn.style.color=''; }, 800);
+    } else {
+      btn.textContent = remaining + 's';
+    }
+  }, 1000);
+}
+
+/* ---------------- THEME ---------------- */
+function toggleTheme(){
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+}
+(function initTheme(){
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  document.documentElement.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+  window.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('themeBtn').textContent = prefersLight ? '☀️' : '🌙';
+  });
+})();
+
+/* init */
+renderSubtabs();
+renderRecipes();
+renderDaytoggle();
+renderExercises();
+</script>
+</body>
+</html>
