@@ -250,7 +250,7 @@ function baseSchedule(day){
       desc: isStrengthDay ? 'Water first. 15–20 min bodyweight strength: squats, push-ups, lunges, planks.' : 'Water first. Light 10 min stretch/mobility — no pressure today.' },
     { start: toMin(5,25), end: toMin(6,0), cat:'work', title:'Get Ready', desc:'Shower, get dressed, out the door.' },
     { start: toMin(6,0), end: toMin(12,0), cat:'fast', title:'Fasted Window', desc:'Black tea/coffee only, no sugar. Commute + work. This is the fasting part of your 16:8 window.' },
-    { start: toMin(12,0), end: toMin(13,30), cat:'meal', title:'Lunch — Meal 1', desc:'Your biggest meal. Break the fast here, then relax before the nap.', meal:'lunch' },
+    { start: toMin(12,0), end: toMin(13,30), cat:'meal', title:'Lunch — Meal 1', desc:'Your biggest meal. Break the fast here, then relax before the nap. Daily target: 1,600 kcal · 160g protein · 60g carbs · 80g fat.', meal:'lunch' },
     { start: toMin(13,30), end: toMin(13,50), cat:'move', title:'Nap', desc:'20 min, hard alarm. Best natural post-lunch dip slot — won\'t affect night sleep.' },
     { start: toMin(13,50), end: toMin(16,0), cat:'work', title:'Work', desc:'Second block of the day.' },
     { start: toMin(16,0), end: toMin(16,30), cat:'meal', title:'Snack', desc:'Light protein snack — keeps you out of the biscuit/tea trap.', meal:'snack' },
@@ -266,21 +266,23 @@ function baseSchedule(day){
   ];
 }
 
+const DAILY_TARGET = { kcal:1600, protein:160, carbs:60, fat:80 };
+
 const MEALS = {
   lunch: [
-    'Chicken Curry (200g chicken, onion-tomato gravy) + 1 roti + salad — ~48g protein',
-    'Egg Curry (3 eggs in gravy) + 1 cup dal + roti — ~33g protein',
-    'Tandoori/Grilled Chicken (200g, curd-marinated) + dal + salad — ~48g protein'
+    'Kashmiri Chicken Curry (250g chicken, no rice) + haak + salad — ~70g protein',
+    'Kashmiri Egg Curry (4 eggs, no rice) + sautéed spinach — ~34g protein',
+    'Tandoori/Grilled Chicken Breast (220g) + roasted veg — ~72g protein'
   ],
   snack: [
+    'Whey protein shake (1 scoop)',
     '2 boiled eggs',
-    '1 cup plain curd (unsweetened)',
-    'Small roasted chana (save for football days)'
+    'Grilled paneer cubes (75g)'
   ],
   dinner: [
-    'Egg Bhurji (3 eggs) + sautéed vegetables — ~21g protein',
-    'Chicken Stir-fry (150g) + mixed veg — ~38g protein',
-    'Clear Chicken Soup (200g bone-in) + veg — ~40g protein, easy on football evenings'
+    'Egg Bhurji + Paneer (50g) + sautéed greens — ~40g protein',
+    'Tandoori Chicken (200g) + sautéed vegetables — ~65g protein',
+    'Clear Chicken Soup (250g bone-in) + veg — ~48g protein, light before bed'
   ]
 };
 

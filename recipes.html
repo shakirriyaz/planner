@@ -110,6 +110,11 @@
   .resetall{background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:8px 12px; font-size:11.5px; cursor:pointer; font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em;}
 
   footer{text-align:center; color:var(--muted-2); font-size:11px; margin-top:34px;}
+
+  .target-banner{display:flex; justify-content:space-between; background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:14px 8px; margin-bottom:18px;}
+  .target-banner .tb-item{text-align:center; flex:1;}
+  .target-banner .tb-num{display:block; font-family:'Oswald',sans-serif; font-size:18px; font-weight:700; color:var(--gold);}
+  .target-banner .tb-lbl{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:2px;}
 </style>
 </head>
 <body>
@@ -119,6 +124,8 @@
     <button class="themebtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
   </div>
   <div class="sub">Tap a recipe to expand · tap circles to log sets</div>
+
+  <div class="target-banner" id="targetBanner"></div>
 
   <nav class="pagenav">
     <a href="index.html" class="navlink">Today</a>
@@ -152,52 +159,54 @@
 
 <script>
 /* ---------------- DATA ---------------- */
+const DAILY_TARGET = { kcal:1600, protein:160, carbs:60, fat:80 };
+
 const RECIPES = {
   lunch: [
-    { name:'Chicken Curry (Home-style)', kcal:480, protein:48, carbs:18, fat:22,
-      ing:['Chicken breast/thigh, skinless — 200g, cubed','Onion — 1 medium, chopped','Tomato — 2 medium, pureed','Ginger-garlic paste — 1 tbsp','Curd — 2 tbsp','Turmeric, chili powder, coriander powder, garam masala, salt','Oil — 1 tsp'],
-      method:'Sauté onion in oil till golden. Add ginger-garlic paste, cook 1 min. Add tomato puree + spices, cook till oil separates (5-7 min). Add chicken, cover, cook 10-12 min till done. Stir in curd off heat, garnish with coriander. Serve with 1 roti + salad.' },
-    { name:'Egg Curry + Dal', kcal:540, protein:42, carbs:32, fat:20,
-      ing:['Boiled eggs — 3, halved','Onion-tomato gravy base (as above, no chicken)','Dal (moong/masoor) — 1 cup, cooked','Same spices as chicken curry'],
-      method:'Make the onion-tomato gravy base. Simmer boiled eggs in it 5 min so they soak up flavor. Serve with 1 cup dal on the side and 1 roti.' },
-    { name:'Tandoori / Grilled Chicken', kcal:430, protein:48, carbs:10, fat:20,
-      ing:['Chicken breast — 200g','Curd — 3 tbsp','Ginger-garlic paste, red chili powder, garam masala, lemon juice, salt'],
-      method:'Marinate chicken 30 min minimum (overnight better). Grill, pan-sear, or oven-bake at 200°C for 20-25 min. Serve with 1 cup dal + salad.' },
-    { name:'Grilled Fish Curry', kcal:410, protein:44, carbs:14, fat:18,
-      ing:['Firm white fish (rohu/pomfret/basa) — 200g','Onion-tomato gravy base (as chicken curry)','Mustard seeds, curry leaves, turmeric','Oil — 1 tsp'],
-      method:'Lightly pan-sear fish 2 min/side, set aside. Make onion-tomato gravy with mustard seeds + curry leaves tempering. Add fish back gently in last 5 min so it doesn\'t break apart. Serve with ½ cup rice + salad. Good rotation for your cholesterol — aim for fish 3-4x/week where possible.' },
-    { name:'Egg & Vegetable Stir-fry Bowl', kcal:390, protein:28, carbs:22, fat:18,
-      ing:['Eggs — 3','Mixed vegetables (capsicum, beans, cabbage, carrot) — 1.5 cups','Garlic, black pepper, light soy or salt','Oil — 1 tsp'],
-      method:'Scramble eggs separately, set aside. Stir-fry vegetables on high heat 4-5 min till just tender-crisp. Fold eggs back in, season, serve over ½ cup rice or as-is.' }
+    { name:'Kashmiri Chicken Curry (No Rice)', kcal:700, protein:70, carbs:22, fat:42,
+      ing:['Chicken thigh, skinless — 250g, cubed','Onion — 1 medium, chopped','Tomato — 2 medium, pureed','Ginger-garlic paste — 1 tbsp','Curd — 3 tbsp','Turmeric, chili powder, fennel powder, garam masala, salt','Mustard oil — 2 tsp','Haak (collard greens) or spinach — 1.5 cups, side','Cucumber-tomato salad'],
+      method:'Sauté onion in mustard oil till golden. Add ginger-garlic paste, cook 1 min. Add tomato puree + spices, cook till oil separates. Add chicken, cover, cook 12-15 min till done. Stir in curd off heat. Sauté haak separately with a pinch of oil. Serve curry + haak + salad — skip rice/roti.' },
+    { name:'Kashmiri Egg Curry (No Rice)', kcal:560, protein:34, carbs:20, fat:38,
+      ing:['Eggs — 4, boiled and halved','Onion-tomato-curd gravy base (as above, no chicken)','Spinach or haak — 1.5 cups, sautéed','Plain curd — small bowl'],
+      method:'Make the onion-tomato gravy base in mustard oil. Simmer boiled eggs in it 5 min to soak up flavor. Serve with sautéed spinach and a small bowl of curd on the side — skip rice/roti.' },
+    { name:'Tandoori / Grilled Chicken Breast', kcal:620, protein:72, carbs:14, fat:26,
+      ing:['Chicken breast — 220g','Curd — 3 tbsp','Ginger-garlic paste, red chili powder, garam masala, lemon juice, salt','Mixed vegetables (cauliflower, capsicum) — 1.5 cups, roasted'],
+      method:'Marinate chicken 30 min minimum (overnight better). Grill, pan-sear, or oven-bake at 200°C for 20-25 min. Roast vegetables with a little oil alongside. Serve together with salad — no rice or roti.' },
+    { name:'Paneer & Vegetable Bhurji', kcal:610, protein:34, carbs:20, fat:42,
+      ing:['Paneer — 150g, crumbled','Onion, tomato, capsicum — chopped, 1.5 cups total','Turmeric, chili powder, cumin, salt','Oil — 1 tsp'],
+      method:'Sauté onion till soft, add capsicum and tomato, cook till just tender. Add crumbled paneer and spices, mix 3-4 min till warmed through. Serve with salad.' },
+    { name:'Rajma (Small Portion) + Eggs — Occasional Carb Day', kcal:480, protein:33, carbs:38, fat:20,
+      ing:['Rajma (kidney beans), cooked — ½ cup','Boiled eggs — 2','Onion-tomato masala','Salad, curd'],
+      method:'Cook rajma in a light onion-tomato masala. Serve with 2 boiled eggs, salad, and curd on the side. This is your highest-carb lunch option — use it once a week, not daily.' }
   ],
   snack: [
-    { name:'2 Boiled Eggs', kcal:140, protein:13, carbs:1, fat:10,
+    { name:'Whey Protein Shake', kcal:150, protein:25, carbs:5, fat:3,
+      ing:['Whey protein — 1 scoop (30g)','Water or a splash of milk'], method:'Shake or blend with water/milk. Quickest, cheapest protein top-up of the day.' },
+    { name:'2 Boiled Eggs', kcal:156, protein:13, carbs:1, fat:11,
       ing:['Eggs — 2, boiled'], method:'Boil for 9-10 min, peel, sprinkle salt & pepper.' },
-    { name:'Plain Curd', kcal:120, protein:10, carbs:8, fat:6,
-      ing:['Plain unsweetened curd — 1 cup','A few almonds, optional'], method:'Eat as-is, no sugar added. Add a few almonds if hungrier.' },
-    { name:'Roasted Chana', kcal:180, protein:8, carbs:24, fat:4,
-      ing:['Roasted chickpeas — ½ cup, no oil'], method:'Best saved for football days since it runs slightly higher calorie.' },
-    { name:'Grilled Paneer Cubes', kcal:160, protein:12, carbs:4, fat:11,
-      ing:['Paneer — 60g, cubed','Chaat masala, lemon, pinch of salt'], method:'Pan-sear on a dry non-stick pan 2-3 min per side, no oil needed. Squeeze lemon and dust chaat masala before eating.' },
-    { name:'Sprouts Salad', kcal:130, protein:9, carbs:18, fat:2,
-      ing:['Mixed sprouts (moong/chana) — 1 cup, steamed','Onion, tomato, lemon, chaat masala'], method:'Steam sprouts 5 min till just tender. Toss with chopped onion, tomato, lemon juice, and chaat masala.' }
+    { name:'Grilled Paneer Cubes', kcal:200, protein:14, carbs:1, fat:16,
+      ing:['Paneer — 75g, cubed','Chaat masala, lemon, pinch of salt'], method:'Pan-sear on a dry non-stick pan 2-3 min per side. Squeeze lemon, dust chaat masala.' },
+    { name:'Plain Curd + Almonds', kcal:210, protein:8, carbs:10, fat:14,
+      ing:['Plain unsweetened curd — 150g','Almonds — 10'], method:'Eat curd as-is, no sugar added. Almonds on the side.' },
+    { name:'Roasted Chana (Occasional)', kcal:95, protein:5, carbs:15, fat:2,
+      ing:['Roasted chickpeas — 25g, no oil'], method:'Save for gym-heavy days since it runs higher carb than your other snack options.' }
   ],
   dinner: [
-    { name:'Egg Bhurji + Sautéed Veg', kcal:320, protein:21, carbs:8, fat:24,
-      ing:['Eggs — 3','Onion, tomato, green chili — chopped','Turmeric, chili powder, salt','Oil — 1 tsp','Coriander leaves'],
-      method:'Sauté onion till soft, add tomato + chili, cook till mushy, add spices. Crack in eggs, scramble till just set — don\'t overcook. Serve with sautéed lauki/bhindi/palak, skip roti most nights.' },
-    { name:'Chicken Stir-fry', kcal:350, protein:38, carbs:15, fat:14,
-      ing:['Chicken breast — 150g, sliced thin','Mixed vegetables (bell pepper, beans, cabbage, carrot) — 1.5 cups','Garlic, black pepper, salt','Oil — 1 tsp'],
-      method:'Stir-fry chicken on high heat till cooked through, remove. Stir-fry veg 4-5 min, add chicken back, toss together.' },
-    { name:'Clear Chicken Soup', kcal:300, protein:40, carbs:8, fat:10,
-      ing:['Chicken, bone-in, skinless — 200g','Garlic, ginger, black pepper, bay leaf','Carrot, beans, spinach','Water — 2-3 cups, salt'],
-      method:'Simmer chicken with aromatics 25-30 min till tender. Add vegetables in the last 10 min. Great on football evenings — light and easy to digest before bed.' },
-    { name:'Grilled Fish with Greens', kcal:310, protein:36, carbs:6, fat:14,
-      ing:['Firm white fish — 150g','Garlic, lemon, black pepper, pinch of chili flakes','Sautéed spinach/palak — 1.5 cups','Oil — 1 tsp'],
-      method:'Marinate fish briefly in lemon, garlic, pepper. Pan-sear or grill 3-4 min per side. Serve over sautéed greens — light, high protein, good for cholesterol.' },
-    { name:'Egg Drop Soup', kcal:260, protein:22, carbs:10, fat:14,
-      ing:['Eggs — 2, beaten','Vegetable or light chicken stock — 2 cups','Garlic, ginger, spring onion, black pepper','Cornflour — 1 tsp (optional, for slight thickness)'],
-      method:'Simmer stock with garlic and ginger 5 min. Drizzle in beaten eggs slowly while stirring to form ribbons. Season with pepper, top with spring onion — quick and light on heavy football-day nights.' }
+    { name:'Egg Bhurji + Paneer + Sautéed Greens', kcal:600, protein:40, carbs:17, fat:42,
+      ing:['Eggs — 4','Paneer — 50g, crumbled','Onion, tomato, green chili — chopped','Mustard oil — 1.5 tsp','Spinach or lauki — 1.5 cups, sautéed'],
+      method:'Sauté onion till soft, add tomato + chili, cook till mushy. Crack in eggs and crumbled paneer, scramble till just set. Serve with sautéed greens — no roti.' },
+    { name:'Tandoori Chicken + Sautéed Vegetables', kcal:450, protein:65, carbs:10, fat:14,
+      ing:['Chicken breast — 200g, curd-marinated','Mixed vegetables — 1.5 cups','Garlic, black pepper, salt','Oil — 1 tsp'],
+      method:'Grill or pan-sear marinated chicken till cooked through. Stir-fry vegetables separately. Serve together — light and high-protein.' },
+    { name:'Clear Chicken Soup', kcal:320, protein:48, carbs:8, fat:8,
+      ing:['Chicken, bone-in, skinless — 250g','Garlic, ginger, black pepper, bay leaf','Carrot, beans, spinach','Water — 2-3 cups, salt'],
+      method:'Simmer chicken with aromatics 25-30 min till tender. Add vegetables in the last 10 min. Light, easy to digest before bed.' },
+    { name:'Grilled Fish + Sautéed Spinach', kcal:400, protein:55, carbs:6, fat:16,
+      ing:['Firm white fish (rohu/basa) — 200g','Garlic, lemon, black pepper','Spinach — 1.5 cups, sautéed','Oil — 1 tsp'],
+      method:'Marinate fish briefly in lemon, garlic, pepper. Pan-sear or grill 3-4 min per side. Serve over sautéed spinach — good rotation for variety and cholesterol.' },
+    { name:'Paneer Tikka + Roasted Vegetables', kcal:430, protein:26, carbs:12, fat:32,
+      ing:['Paneer — 120g, cubed','Curd, ginger-garlic, tikka masala spices','Mixed vegetables — 1.5 cups, roasted'],
+      method:'Marinate paneer in spiced curd 15-20 min. Grill or pan-sear till lightly charred. Roast vegetables alongside. Vegetarian dinner option.' }
   ]
 };
 
@@ -234,6 +243,16 @@ document.querySelectorAll('.maintab').forEach(tab=>{
     document.getElementById('view-'+v).classList.add('active');
   });
 });
+
+/* ---------------- TARGET BANNER ---------------- */
+function renderTargetBanner(){
+  document.getElementById('targetBanner').innerHTML = `
+    <div class="tb-item"><span class="tb-num">${DAILY_TARGET.kcal}</span><span class="tb-lbl">Kcal Target</span></div>
+    <div class="tb-item"><span class="tb-num">${DAILY_TARGET.protein}g</span><span class="tb-lbl">Protein</span></div>
+    <div class="tb-item"><span class="tb-num">${DAILY_TARGET.carbs}g</span><span class="tb-lbl">Carbs</span></div>
+    <div class="tb-item"><span class="tb-num">${DAILY_TARGET.fat}g</span><span class="tb-lbl">Fat</span></div>
+  `;
+}
 
 /* ---------------- DIET RENDER ---------------- */
 function renderSubtabs(){
@@ -361,6 +380,7 @@ function toggleTheme(){
 })();
 
 /* init */
+renderTargetBanner();
 renderSubtabs();
 renderRecipes();
 renderDaytoggle();
