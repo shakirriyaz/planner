@@ -78,7 +78,9 @@
   .macros{display:flex; gap:14px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted);}
 
   /* exercises */
-  .daytoggle{display:flex; gap:6px; margin-bottom:16px;}
+  .daytoggle{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;}
+  .daytoggle .subtab{flex:1 1 calc(25% - 5px);}
+  .ex-day-heading{font-family:'Oswald',sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--gold); margin:4px 0 14px;}
   .exercise-card{
     background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px;
   }
@@ -151,6 +153,7 @@
     </div>
 
     <div class="daytoggle" id="daytoggle"></div>
+    <h2 class="ex-day-heading" id="exerciseHeading"></h2>
     <div id="exerciseList"></div>
   </div>
 
@@ -177,7 +180,13 @@ const RECIPES = {
       method:'Sauté onion till soft, add capsicum and tomato, cook till just tender. Add crumbled paneer and spices, mix 3-4 min till warmed through. Serve with salad.' },
     { name:'Rajma (Small Portion) + Eggs — Occasional Carb Day', kcal:480, protein:33, carbs:38, fat:20,
       ing:['Rajma (kidney beans), cooked — ½ cup','Boiled eggs — 2','Onion-tomato masala','Salad, curd'],
-      method:'Cook rajma in a light onion-tomato masala. Serve with 2 boiled eggs, salad, and curd on the side. This is your highest-carb lunch option — use it once a week, not daily.' }
+      method:'Cook rajma in a light onion-tomato masala. Serve with 2 boiled eggs, salad, and curd on the side. This is your highest-carb lunch option — use it once a week, not daily.' },
+    { name:'Quick Egg & Veggie Salad Bowl (No-Cook)', kcal:400, protein:27, carbs:13, fat:27,
+      ing:['Eggs — 4, boiled','Cucumber — 1, chopped','Tomato — 1, chopped','Onion — a few slices','Mustard or olive oil — 1 tsp','Lemon juice, salt, pepper'],
+      method:'Boil eggs ahead of time (batch-boil a dozen on Sunday). Chop everything, toss with oil, lemon, salt and pepper. Zero stovetop cooking needed on the day — 5 minutes, done.' },
+    { name:'5-Ingredient Chicken Salad', kcal:390, protein:58, carbs:9, fat:13,
+      ing:['Cooked chicken breast — 180g, shredded (batch-grill ahead)','Cucumber — 1, chopped','Tomato — 1, chopped','Curd — 2 tbsp','Olive oil — 1 tsp, salt, pepper'],
+      method:'Use chicken grilled/boiled in advance. Toss shredded chicken with chopped veg, curd, oil, salt and pepper. No cooking required if chicken is meal-prepped — your fastest high-protein lunch.' }
   ],
   snack: [
     { name:'Whey Protein Shake', kcal:150, protein:25, carbs:5, fat:3,
@@ -189,7 +198,11 @@ const RECIPES = {
     { name:'Plain Curd + Almonds', kcal:210, protein:8, carbs:10, fat:14,
       ing:['Plain unsweetened curd — 150g','Almonds — 10'], method:'Eat curd as-is, no sugar added. Almonds on the side.' },
     { name:'Roasted Chana (Occasional)', kcal:95, protein:5, carbs:15, fat:2,
-      ing:['Roasted chickpeas — 25g, no oil'], method:'Save for gym-heavy days since it runs higher carb than your other snack options.' }
+      ing:['Roasted chickpeas — 25g, no oil'], method:'Save for gym-heavy days since it runs higher carb than your other snack options.' },
+    { name:'Cucumber-Curd Raita', kcal:105, protein:6, carbs:11, fat:5,
+      ing:['Cucumber — 1, grated','Plain curd — 150g','Roasted cumin powder, salt'], method:'Grate cucumber, squeeze out excess water, mix into curd with cumin and salt. No cooking at all.' },
+    { name:'Roasted Peanuts (Unsalted)', kcal:115, protein:5, carbs:3, fat:10,
+      ing:['Roasted peanuts — 20g (small handful), unsalted'], method:'Zero prep — keep a jar at your desk for the 4pm slot.' }
   ],
   dinner: [
     { name:'Egg Bhurji + Paneer + Sautéed Greens', kcal:600, protein:40, carbs:17, fat:42,
@@ -206,30 +219,62 @@ const RECIPES = {
       method:'Marinate fish briefly in lemon, garlic, pepper. Pan-sear or grill 3-4 min per side. Serve over sautéed spinach — good rotation for variety and cholesterol.' },
     { name:'Paneer Tikka + Roasted Vegetables', kcal:430, protein:26, carbs:12, fat:32,
       ing:['Paneer — 120g, cubed','Curd, ginger-garlic, tikka masala spices','Mixed vegetables — 1.5 cups, roasted'],
-      method:'Marinate paneer in spiced curd 15-20 min. Grill or pan-sear till lightly charred. Roast vegetables alongside. Vegetarian dinner option.' }
+      method:'Marinate paneer in spiced curd 15-20 min. Grill or pan-sear till lightly charred. Roast vegetables alongside. Vegetarian dinner option.' },
+    { name:'Simple Boiled Egg & Vegetable Plate (No-Cook)', kcal:400, protein:28, carbs:14, fat:27,
+      ing:['Eggs — 4, boiled','Cucumber — 2, sliced','Tomato — 1, sliced','Olive oil — 1 tsp, salt, pepper, chaat masala'],
+      method:'Boil eggs ahead of time. Slice veg, arrange on a plate, drizzle oil and seasoning. No stove needed on a tired evening.' },
+    { name:'Quick Paneer & Cucumber Bowl', kcal:305, protein:20, carbs:8, fat:22,
+      ing:['Paneer — 100g, cubed','Cucumber — 1.5, chopped','Curd — 2 tbsp','Chaat masala, lemon'],
+      method:'Pan-sear paneer 2-3 min on a dry non-stick pan (no oil needed). Toss with cucumber, curd, chaat masala and a squeeze of lemon. Under 10 minutes.' }
   ]
 };
 
 const EXERCISES = {
-  strength: [
-    { name:'Bodyweight Squats', target:'3 × 15', cue:'Feet shoulder-width, chest up, knees tracking over toes.', sets:3, timed:false },
-    { name:'Push-ups', target:'3 × 12', cue:'Drop to knees if needed — full range matters more than count.', sets:3, timed:false },
-    { name:'Walking Lunges', target:'3 × 10 per leg', cue:'Keep torso upright, front knee stays behind toes.', sets:3, timed:false },
-    { name:'Glute Bridges', target:'3 × 15', cue:'Squeeze glutes at the top, pause 1 sec.', sets:3, timed:false },
-    { name:'Plank Hold', target:'3 × 30 sec', cue:'Straight line head to heels, don\'t let hips sag.', sets:3, timed:true, seconds:30 }
-  ],
-  mobility: [
+  mon: { label:'Mon · Full Body A', list:[
+    { name:'Goblet Squat', target:'3 × 12', cue:'Hold a dumbbell at chest height, squat till thighs are near parallel, drive up through your heels.', sets:3, timed:false },
+    { name:'Incline Push-up / Chest Press Machine', target:'3 × 10-12', cue:'Hands slightly wider than shoulders. Control the lowering phase — 2 sec down.', sets:3, timed:false },
+    { name:'Lat Pulldown', target:'3 × 12', cue:'Pull the bar to your upper chest, squeeze shoulder blades together, don\'t lean back.', sets:3, timed:false },
+    { name:'Plank Hold', target:'3 × 40 sec', cue:'Straight line head to heels, brace your core, don\'t let hips sag.', sets:3, timed:true, seconds:40 },
+    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace — caps off the session.', sets:1, timed:true, seconds:900 }
+  ]},
+  tue: { label:'Tue · Cardio + Core', list:[
+    { name:'Brisk Walk / Cycling', target:'30-35 min', cue:'Talk-test pace — you should be able to speak in short sentences, not sing.', sets:1, timed:true, seconds:1800 },
+    { name:'Bicycle Crunches', target:'3 × 20', cue:'Slow and controlled, elbow to opposite knee — don\'t yank your neck.', sets:3, timed:false },
+    { name:'Dead Bug', target:'3 × 12 per side', cue:'Lower back stays pressed to the floor the whole time.', sets:3, timed:false },
+    { name:'Side Plank', target:'3 × 25 sec/side', cue:'Stack hips and shoulders, don\'t let hips drop.', sets:3, timed:true, seconds:25 }
+  ]},
+  wed: { label:'Wed · Full Body B', list:[
+    { name:'Leg Press / Step-ups', target:'3 × 12', cue:'Full range of motion, don\'t lock knees out hard at the top.', sets:3, timed:false },
+    { name:'Seated Cable Row', target:'3 × 12', cue:'Pull to your torso, squeeze shoulder blades, keep your back straight.', sets:3, timed:false },
+    { name:'Dumbbell Shoulder Press', target:'3 × 10', cue:'Press straight up, avoid arching your lower back.', sets:3, timed:false },
+    { name:'Standing Calf Raise', target:'3 × 15', cue:'Full stretch at the bottom, pause at the top.', sets:3, timed:false },
+    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace.', sets:1, timed:true, seconds:900 }
+  ]},
+  thu: { label:'Thu · Active Recovery', list:[
+    { name:'Easy Walk', target:'30-40 min', cue:'Easy conversational pace — this is recovery, not a workout.', sets:1, timed:true, seconds:1800 },
     { name:'Cat-Cow Stretch', target:'10 reps', cue:'Slow, controlled — sync with breath.', sets:1, timed:false },
-    { name:'Hip Opener (90/90)', target:'45 sec/side', cue:'Sit tall, gently lean forward over front shin.', sets:2, timed:true, seconds:45 },
-    { name:'Standing Hamstring Stretch', target:'30 sec/side', cue:'Soft knee, hinge at hips not the back.', sets:2, timed:true, seconds:30 },
-    { name:'Shoulder Rolls + Arm Circles', target:'20 reps', cue:'Loosens up before the desk day starts.', sets:1, timed:false },
-    { name:'Deep Squat Hold', target:'40 sec', cue:'Heels down, chest up — opens hips and ankles.', sets:1, timed:true, seconds:40 }
-  ]
+    { name:'Hip Opener (90/90)', target:'45 sec/side', cue:'Sit tall, gently lean forward over the front shin.', sets:2, timed:true, seconds:45 },
+    { name:'Standing Hamstring Stretch', target:'30 sec/side', cue:'Soft knee, hinge at the hips not the back.', sets:2, timed:true, seconds:30 }
+  ]},
+  fri: { label:'Fri · Full Body C', list:[
+    { name:'Romanian Deadlift (Light, Form Focus)', target:'3 × 10', cue:'Hinge at the hips, dumbbells stay close to your legs, keep your back flat.', sets:3, timed:false },
+    { name:'Incline Dumbbell / Machine Press', target:'3 × 12', cue:'Control the weight down, press up without locking elbows hard.', sets:3, timed:false },
+    { name:'Assisted Pull-up / Lat Pulldown', target:'3 × 12', cue:'Full stretch at the top, pull elbows down and back.', sets:3, timed:false },
+    { name:'Farmer\'s Carry', target:'3 × 30m', cue:'Heavy dumbbells, walk tall, shoulders back — grip and core work hard here.', sets:3, timed:false },
+    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace.', sets:1, timed:true, seconds:900 }
+  ]},
+  sat: { label:'Sat · Cardio (Longer)', list:[
+    { name:'Brisk Walk / Hike / Cycling', target:'40-45 min', cue:'Comfortable, sustained pace — your longest cardio session of the week.', sets:1, timed:true, seconds:2400 }
+  ]},
+  sun: { label:'Sun · Rest', list:[
+    { name:'Full Rest', target:'—', cue:'No structured training today. Optional light stretching if you feel stiff — otherwise just recover.', sets:1, timed:false }
+  ]}
 };
+const DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
 
 /* ---------------- STATE (in-memory only, resets on reload) ---------------- */
 let dietTab = 'lunch';
-let exerciseDay = 'strength';
+let exerciseDay = DAY_ORDER[(new Date().getDay()+6)%7]; // default to today (getDay: 0=Sun..6=Sat)
 const setState = {}; // key: "day_exIdx_setIdx" -> bool
 let totalSetsLogged = 0;
 
@@ -294,18 +339,25 @@ function toggleRecipe(tab,i){
 }
 
 /* ---------------- EXERCISE RENDER ---------------- */
+function fmtSeconds(s){
+  if(s>=60){ const m=Math.floor(s/60), sec=s%60; return m+':'+String(sec).padStart(2,'0'); }
+  return s+'s';
+}
+
 function renderDaytoggle(){
-  document.getElementById('daytoggle').innerHTML = `
-    <div class="subtab ${exerciseDay==='strength'?'active':''}" data-day="strength">Strength (Mon/Wed/Fri)</div>
-    <div class="subtab ${exerciseDay==='mobility'?'active':''}" data-day="mobility">Mobility (Other days)</div>
-  `;
+  document.getElementById('daytoggle').innerHTML = DAY_ORDER.map(d=>{
+    const shortLabel = EXERCISES[d].label.split(' · ')[0];
+    return `<div class="subtab ${exerciseDay===d?'active':''}" data-day="${d}">${shortLabel}</div>`;
+  }).join('');
   document.querySelectorAll('#daytoggle .subtab').forEach(el=>{
     el.addEventListener('click', ()=>{ exerciseDay = el.dataset.day; renderDaytoggle(); renderExercises(); });
   });
 }
 
 function renderExercises(){
-  const list = EXERCISES[exerciseDay];
+  const day = EXERCISES[exerciseDay];
+  const list = day.list;
+  document.getElementById('exerciseHeading').textContent = day.label;
   document.getElementById('exerciseList').innerHTML = list.map((ex,i)=>{
     const circles = Array.from({length:ex.sets}).map((_,s)=>{
       const key = `${exerciseDay}_${i}_${s}`;
@@ -314,7 +366,7 @@ function renderExercises(){
     }).join('');
     const doneCount = Array.from({length:ex.sets}).filter((_,s)=>setState[`${exerciseDay}_${i}_${s}`]).length;
     const pct = Math.round((doneCount/ex.sets)*100);
-    const timerBtn = ex.timed ? `<button class="timer-btn" id="timerbtn-${exerciseDay}-${i}" onclick="startTimer('${exerciseDay}',${i},${ex.seconds})">Start ${ex.seconds}s</button>` : '';
+    const timerBtn = ex.timed ? `<button class="timer-btn" id="timerbtn-${exerciseDay}-${i}" onclick="startTimer('${exerciseDay}',${i},${ex.seconds})">Start ${fmtSeconds(ex.seconds)}</button>` : '';
     return `
       <div class="exercise-card">
         <div class="ex-head">
@@ -349,17 +401,17 @@ function startTimer(day,i,seconds){
   if(btn.classList.contains('running')) return;
   let remaining = seconds;
   btn.classList.add('running');
-  btn.textContent = remaining + 's';
+  btn.textContent = fmtSeconds(remaining);
   const interval = setInterval(()=>{
     remaining--;
     if(remaining <= 0){
       clearInterval(interval);
       btn.classList.remove('running');
-      btn.textContent = 'Start '+seconds+'s';
+      btn.textContent = 'Start '+fmtSeconds(seconds);
       btn.style.background = 'var(--teal)'; btn.style.color = '#08150f';
       setTimeout(()=>{ btn.style.background=''; btn.style.color=''; }, 800);
     } else {
-      btn.textContent = remaining + 's';
+      btn.textContent = fmtSeconds(remaining);
     }
   }, 1000);
 }
