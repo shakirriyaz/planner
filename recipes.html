@@ -103,6 +103,22 @@
   .progress-bar{height:5px; background:var(--bg-elevated); border-radius:3px; margin-top:12px; overflow:hidden;}
   .progress-fill{height:100%; background:var(--teal); width:0%; transition:width 0.2s;}
 
+  .ex-media{margin:10px 0; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:var(--bg-elevated); position:relative;}
+  .ex-media img{width:100%; display:block; aspect-ratio:4/3; object-fit:cover; background:var(--bg-elevated);}
+  .ex-media .ex-media-tag{
+    position:absolute; top:8px; right:8px; background:rgba(15,20,27,0.75); color:#f3eee4;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; padding:3px 7px; border-radius:5px; letter-spacing:0.03em;
+  }
+  .ex-steps{margin:10px 0 12px;}
+  .ex-steps summary{
+    cursor:pointer; font-family:'Oswald',sans-serif; font-size:11.5px; font-weight:600;
+    letter-spacing:0.04em; text-transform:uppercase; color:var(--gold); list-style:none; user-select:none;
+  }
+  .ex-steps summary::-webkit-details-marker{display:none;}
+  .ex-steps summary::after{content:' \25BE';}
+  .ex-steps[open] summary::after{content:' \25B4';}
+  .ex-steps ol{margin:9px 0 0; padding-left:18px; font-size:12.5px; color:#cdd3da; line-height:1.6; display:flex; flex-direction:column; gap:5px;}
+
   .session-summary{
     background:var(--bg-card); border:1px solid rgba(47,144,119,0.4); border-radius:14px; padding:16px; margin-bottom:16px;
     display:flex; justify-content:space-between; align-items:center;
@@ -157,7 +173,7 @@
     <div id="exerciseList"></div>
   </div>
 
-  <footer>Numbers are estimates for planning — actual values vary by brand/portion.</footer>
+  <footer>Numbers are estimates for planning — actual values vary by brand/portion. Exercise photos &amp; step instructions: free-exercise-db (open dataset, CC0).</footer>
 </div>
 
 <script>
@@ -166,12 +182,12 @@ const DAILY_TARGET = { kcal:1600, protein:160, carbs:60, fat:80 };
 
 const RECIPES = {
   lunch: [
-    { name:'Kashmiri Chicken Curry (No Rice)', kcal:700, protein:70, carbs:22, fat:42,
-      ing:['Chicken thigh, skinless — 250g, cubed','Onion — 1 medium, chopped','Tomato — 2 medium, pureed','Ginger-garlic paste — 1 tbsp','Curd — 3 tbsp','Turmeric, chili powder, fennel powder, garam masala, salt','Mustard oil — 2 tsp','Haak (collard greens) or spinach — 1.5 cups, side','Cucumber-tomato salad'],
-      method:'Sauté onion in mustard oil till golden. Add ginger-garlic paste, cook 1 min. Add tomato puree + spices, cook till oil separates. Add chicken, cover, cook 12-15 min till done. Stir in curd off heat. Sauté haak separately with a pinch of oil. Serve curry + haak + salad — skip rice/roti.' },
-    { name:'Kashmiri Egg Curry (No Rice)', kcal:560, protein:34, carbs:20, fat:38,
-      ing:['Eggs — 4, boiled and halved','Onion-tomato-curd gravy base (as above, no chicken)','Spinach or haak — 1.5 cups, sautéed','Plain curd — small bowl'],
-      method:'Make the onion-tomato gravy base in mustard oil. Simmer boiled eggs in it 5 min to soak up flavor. Serve with sautéed spinach and a small bowl of curd on the side — skip rice/roti.' },
+    { name:'North Indian Chicken Curry (No Rice)', kcal:700, protein:70, carbs:22, fat:42,
+      ing:['Chicken thigh, skinless — 250g, cubed','Onion — 1 medium, chopped','Tomato — 2 medium, pureed','Ginger-garlic paste — 1 tbsp','Curd — 3 tbsp','Turmeric, chili powder, coriander powder, garam masala, salt','Oil — 2 tsp','Spinach or methi (fenugreek greens) — 1.5 cups, side','Cucumber-tomato salad'],
+      method:'Sauté onion in oil till golden. Add ginger-garlic paste, cook 1 min. Add tomato puree + spices, cook till oil separates. Add chicken, cover, cook 12-15 min till done. Stir in curd off heat. Sauté the greens separately with a pinch of oil. Serve curry + greens + salad — skip rice/roti.' },
+    { name:'Egg Curry (No Rice)', kcal:560, protein:34, carbs:20, fat:38,
+      ing:['Eggs — 4, boiled and halved','Onion-tomato-curd gravy base (as above, no chicken)','Spinach or methi — 1.5 cups, sautéed','Plain curd — small bowl'],
+      method:'Make the onion-tomato gravy base in oil. Simmer boiled eggs in it 5 min to soak up flavor. Serve with sautéed greens and a small bowl of curd on the side — skip rice/roti.' },
     { name:'Tandoori / Grilled Chicken Breast', kcal:620, protein:72, carbs:14, fat:26,
       ing:['Chicken breast — 220g','Curd — 3 tbsp','Ginger-garlic paste, red chili powder, garam masala, lemon juice, salt','Mixed vegetables (cauliflower, capsicum) — 1.5 cups, roasted'],
       method:'Marinate chicken 30 min minimum (overnight better). Grill, pan-sear, or oven-bake at 200°C for 20-25 min. Roast vegetables with a little oil alongside. Serve together with salad — no rice or roti.' },
@@ -229,42 +245,108 @@ const RECIPES = {
   ]
 };
 
+// Exercise photos are two real reference frames per move, sourced from the
+// free-exercise-db open dataset (CC0) — https://github.com/yuhonas/free-exercise-db
+const IMG_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+
 const EXERCISES = {
-  mon: { label:'Mon · Full Body A', list:[
-    { name:'Goblet Squat', target:'3 × 12', cue:'Hold a dumbbell at chest height, squat till thighs are near parallel, drive up through your heels.', sets:3, timed:false },
-    { name:'Incline Push-up / Chest Press Machine', target:'3 × 10-12', cue:'Hands slightly wider than shoulders. Control the lowering phase — 2 sec down.', sets:3, timed:false },
-    { name:'Lat Pulldown', target:'3 × 12', cue:'Pull the bar to your upper chest, squeeze shoulder blades together, don\'t lean back.', sets:3, timed:false },
-    { name:'Plank Hold', target:'3 × 40 sec', cue:'Straight line head to heels, brace your core, don\'t let hips sag.', sets:3, timed:true, seconds:40 },
-    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace — caps off the session.', sets:1, timed:true, seconds:900 }
+  mon: { label:'Mon · Upper A (Strength)', list:[
+    { name:'Barbell Bench Press', target:'4 × 8–10', cue:'Bar to mid-chest under control, drive back up to a full lockout.', sets:4, timed:false,
+      img:['Barbell_Bench_Press_-_Medium_Grip/0.jpg','Barbell_Bench_Press_-_Medium_Grip/1.jpg'],
+      steps:['Un-rack with a medium grip, arms locked straight over your chest.','Lower the bar slowly to your mid-chest — about twice as slow as you press it up.','Press back up while squeezing your chest, pause at lockout, repeat.'] },
+    { name:'Bent Over Barbell Row', target:'4 × 8–10', cue:'Torso stays still — pull with your back, not your arms.', sets:4, timed:false,
+      img:['Bent_Over_Barbell_Row/0.jpg','Bent_Over_Barbell_Row/1.jpg'],
+      steps:['Hinge forward until your torso is near-parallel to the floor, back flat, knees soft.','Pull the bar to your torso keeping elbows close to your body, squeeze your back at the top.','Lower slowly back to a full stretch and repeat.'] },
+    { name:'Seated Dumbbell Press', target:'3 × 10', cue:'Press straight up until the dumbbells meet overhead.', sets:3, timed:false,
+      img:['Seated_Dumbbell_Press/0.jpg','Seated_Dumbbell_Press/1.jpg'],
+      steps:['Sit with back supported, dumbbells at shoulder height, palms facing forward.','Press up until the dumbbells touch overhead.','Lower back to shoulder height under control and repeat.'] },
+    { name:'Wide-Grip Lat Pulldown', target:'3 × 10', cue:'Pull with your elbows, not your hands — squeeze the shoulder blades.', sets:3, timed:false,
+      img:['Wide-Grip_Lat_Pulldown/0.jpg','Wide-Grip_Lat_Pulldown/1.jpg'],
+      steps:['Grip the bar wide, lean back slightly with your chest up.','Pull the bar down to your upper chest, driving elbows down and back.','Control the return to a full stretch and repeat.'] },
+    { name:'Incline Dumbbell Press', target:'3 × 10–12', cue:'Press up and slightly in, feel the stretch on the way down.', sets:3, timed:false,
+      img:['Incline_Dumbbell_Press/0.jpg','Incline_Dumbbell_Press/1.jpg'],
+      steps:['Set the bench to 30–45°, dumbbells at shoulder width, palms facing away from you.','Press the dumbbells up until your arms lock out.','Lower slowly until you feel a stretch across your chest, repeat.'] },
+    { name:'Face Pull', target:'3 × 15', cue:'Elbows high, pull to your face — keep it light, this is for shoulder health.', sets:3, timed:false,
+      img:['Face_Pull/0.jpg','Face_Pull/1.jpg'],
+      steps:['Set a rope attachment on a cable at face height.','Pull the rope towards your face, separating your hands, elbows staying high.','Control the return and repeat.'] },
+    { name:'Plank Hold', target:'3 × 30–45 sec', cue:'One straight line from head to heels — don\'t let the hips sag.', sets:3, timed:true, seconds:40,
+      img:['Plank/0.jpg','Plank/1.jpg'],
+      steps:['Forearms down, elbows under your shoulders, weight on your toes.','Brace your core and hold your body in one straight line.','Breathe steadily — don\'t let the hips sag or pike up.'] },
+    { name:'Incline Treadmill Walk (Finisher)', target:'10 min', cue:'Moderate incline, brisk pace — caps off the session.', sets:1, timed:true, seconds:600 }
   ]},
-  tue: { label:'Tue · Cardio + Core', list:[
-    { name:'Brisk Walk / Cycling', target:'30-35 min', cue:'Talk-test pace — you should be able to speak in short sentences, not sing.', sets:1, timed:true, seconds:1800 },
+  tue: { label:'Tue · Football + Core', list:[
+    { name:'Brisk Walk / Cycling', target:'20-25 min', cue:'Talk-test pace — easy enough to warm up for football later today.', sets:1, timed:true, seconds:1200 },
     { name:'Bicycle Crunches', target:'3 × 20', cue:'Slow and controlled, elbow to opposite knee — don\'t yank your neck.', sets:3, timed:false },
     { name:'Dead Bug', target:'3 × 12 per side', cue:'Lower back stays pressed to the floor the whole time.', sets:3, timed:false },
     { name:'Side Plank', target:'3 × 25 sec/side', cue:'Stack hips and shoulders, don\'t let hips drop.', sets:3, timed:true, seconds:25 }
   ]},
-  wed: { label:'Wed · Full Body B', list:[
-    { name:'Leg Press / Step-ups', target:'3 × 12', cue:'Full range of motion, don\'t lock knees out hard at the top.', sets:3, timed:false },
-    { name:'Seated Cable Row', target:'3 × 12', cue:'Pull to your torso, squeeze shoulder blades, keep your back straight.', sets:3, timed:false },
-    { name:'Dumbbell Shoulder Press', target:'3 × 10', cue:'Press straight up, avoid arching your lower back.', sets:3, timed:false },
-    { name:'Standing Calf Raise', target:'3 × 15', cue:'Full stretch at the bottom, pause at the top.', sets:3, timed:false },
-    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace.', sets:1, timed:true, seconds:900 }
+  wed: { label:'Wed · Lower A (Strength)', list:[
+    { name:'Barbell Squat', target:'4 × 8', cue:'Sit back and down until thighs pass parallel, drive up through the heels.', sets:4, timed:false,
+      img:['Barbell_Squat/0.jpg','Barbell_Squat/1.jpg'],
+      steps:['Bar on your upper back, feet shoulder-width, toes slightly turned out.','Lower by bending your hips and knees until thighs are just past parallel, knees tracking over your toes.','Drive back up through your heels to standing.'] },
+    { name:'Romanian Deadlift', target:'3 × 10', cue:'Push the hips back, keep the bar close to your legs.', sets:3, timed:false,
+      img:['Romanian_Deadlift/0.jpg','Romanian_Deadlift/1.jpg'],
+      steps:['Hold the bar with a slight knee bend, hips back, back flat.','Lower the bar along your legs by pushing your hips back — knees barely bend further.','Drive your hips forward to return to standing, repeat.'] },
+    { name:'Barbell Walking Lunge', target:'3 × 12/leg', cue:'Front knee stays over the ankle, torso upright.', sets:3, timed:false,
+      img:['Barbell_Walking_Lunge/0.jpg','Barbell_Walking_Lunge/1.jpg'],
+      steps:['Bar across your upper back, feet shoulder-width.','Step forward and lower until your rear knee nearly touches the ground.','Drive through the front heel and step the rear leg forward into the next rep.'] },
+    { name:'Split Squats', target:'3 × 6–10/leg', cue:'Both knees bend to roughly 90° — control the tempo if you\'re training strength over speed.', sets:3, timed:false,
+      img:['Split_Squats/0.jpg','Split_Squats/1.jpg'],
+      steps:['Start standing, then step into a split stance — one leg forward, one back.','Lower your hips until both knees are bent.','Push back up to standing (or jump-switch legs for the power version) and repeat.'] },
+    { name:'Seated Calf Raise', target:'3 × 15', cue:'Slow and controlled beats fast and bouncy.', sets:3, timed:false,
+      img:['Seated_Calf_Raise/0.jpg','Seated_Calf_Raise/1.jpg'],
+      steps:['Toes on the platform, thighs positioned under the pad.','Lower your heels for a full stretch.','Rise onto your toes, pause at the top, and repeat.'] },
+    { name:'Hanging Leg Raise', target:'3 × 15', cue:'Curl the pelvis under at the top — don\'t just swing your legs.', sets:3, timed:false,
+      img:['Hanging_Leg_Raise/0.jpg','Hanging_Leg_Raise/1.jpg'],
+      steps:['Hang from a bar, arms extended, slight backward pelvic tilt.','Raise your legs until your torso and legs form roughly a 90° angle.','Lower slowly with control — no swinging — and repeat.'] },
+    { name:'Pallof Press', target:'3 × 30 sec/side', cue:'Nothing moves except your arms — resist the rotation.', sets:3, timed:true, seconds:30,
+      img:['Pallof_Press/0.jpg','Pallof_Press/1.jpg'],
+      steps:['Stand side-on to a cable at chest height, handle held at your sternum.','Press straight out and hold, keeping your core braced against the pull.','Return to your chest and repeat, then switch sides.'] }
   ]},
-  thu: { label:'Thu · Active Recovery', list:[
-    { name:'Easy Walk', target:'30-40 min', cue:'Easy conversational pace — this is recovery, not a workout.', sets:1, timed:true, seconds:1800 },
-    { name:'Cat-Cow Stretch', target:'10 reps', cue:'Slow, controlled — sync with breath.', sets:1, timed:false },
-    { name:'Hip Opener (90/90)', target:'45 sec/side', cue:'Sit tall, gently lean forward over the front shin.', sets:2, timed:true, seconds:45 },
-    { name:'Standing Hamstring Stretch', target:'30 sec/side', cue:'Soft knee, hinge at the hips not the back.', sets:2, timed:true, seconds:30 }
+  thu: { label:'Thu · Upper B (Power)', list:[
+    { name:'Push Press', target:'4 × 6', cue:'Dip with the legs, then drive the bar overhead.', sets:4, timed:false,
+      img:['Push_Press/0.jpg','Push_Press/1.jpg'],
+      steps:['Bar at your shoulders, feet hip-width.','Dip your knees slightly, then drive up explosively through your legs.','Press the bar to full lockout overhead as the leg drive carries it up.'] },
+    { name:'Medicine Ball Chest Pass', target:'3 × 8', cue:'Full effort every rep — this is about power, not volume.', sets:3, timed:false,
+      img:['Medicine_Ball_Chest_Pass/0.jpg','Medicine_Ball_Chest_Pass/1.jpg'],
+      steps:['Hold the ball at your chest, facing a wall or partner.','Pull the ball to your chest, then explosively extend through the elbows to throw it.','Catch the rebound at chest height and repeat.'] },
+    { name:'Pullups', target:'4 × 8', cue:'Pull your chest towards the bar, control the way down.', sets:4, timed:false,
+      img:['Pullups/0.jpg','Pullups/1.jpg'],
+      steps:['Grip the bar just outside shoulder width, hang with arms fully extended.','Pull up until your chest nears the bar, squeezing your back muscles.','Lower slowly to a full hang and repeat.'] },
+    { name:'Front Box Jump', target:'4 × 5', cue:'Land soft with bent knees — step down, don\'t jump down.', sets:4, timed:false,
+      img:['Front_Box_Jump/0.jpg','Front_Box_Jump/1.jpg'],
+      steps:['Stand a comfortable distance from a sturdy box.','Dip into a short squat, swing your arms back, then jump onto the box.','Land softly with bent knees; step back down one leg at a time.'] },
+    { name:'One-Arm Kettlebell Swings', target:'4 × 30 sec/side', cue:'Power comes from the hips, not the shoulder.', sets:4, timed:true, seconds:30,
+      img:['One-Arm_Kettlebell_Swings/0.jpg','One-Arm_Kettlebell_Swings/1.jpg'],
+      steps:['Hinge at the hips with the kettlebell hanging between your legs.','Drive your hips forward explosively to swing the bell to shoulder height.','Let it swing back down between your legs and repeat with control.'] },
+    { name:'Russian Twist', target:'3 × 20', cue:'Rotate from the ribcage, not just the arms.', sets:3, timed:false,
+      img:['Russian_Twist/0.jpg','Russian_Twist/1.jpg'],
+      steps:['Sit with knees bent, lean back slightly to form a V-shape with your thighs.','Twist your torso to one side until your arms are parallel to the floor.','Rotate to the other side and repeat.'] }
   ]},
-  fri: { label:'Fri · Full Body C', list:[
-    { name:'Romanian Deadlift (Light, Form Focus)', target:'3 × 10', cue:'Hinge at the hips, dumbbells stay close to your legs, keep your back flat.', sets:3, timed:false },
-    { name:'Incline Dumbbell / Machine Press', target:'3 × 12', cue:'Control the weight down, press up without locking elbows hard.', sets:3, timed:false },
-    { name:'Assisted Pull-up / Lat Pulldown', target:'3 × 12', cue:'Full stretch at the top, pull elbows down and back.', sets:3, timed:false },
-    { name:'Farmer\'s Carry', target:'3 × 30m', cue:'Heavy dumbbells, walk tall, shoulders back — grip and core work hard here.', sets:3, timed:false },
-    { name:'Incline Treadmill Walk (Finisher)', target:'15 min', cue:'Moderate incline, brisk pace.', sets:1, timed:true, seconds:900 }
+  fri: { label:'Fri · Lower B (Posterior, Grip &amp; Neck)', list:[
+    { name:'Trap Bar Deadlift', target:'4 × 6', cue:'Chest up, drive through the heels — no rounding the back.', sets:4, timed:false,
+      img:['Trap_Bar_Deadlift/0.jpg','Trap_Bar_Deadlift/1.jpg'],
+      steps:['Stand centered in the trap bar, grasp both handles.','Lower your hips, chest up, back flat.','Drive through your heels to stand tall, then lower the weight back down under control.'] },
+    { name:'Barbell Hip Thrust', target:'4 × 10', cue:'Squeeze the glutes hard at the top, don\'t hyperextend the lower back.', sets:4, timed:false,
+      img:['Barbell_Hip_Thrust/0.jpg','Barbell_Hip_Thrust/1.jpg'],
+      steps:['Upper back against a bench, barbell rolled over your hips.','Drive through your feet to extend your hips upward.','Squeeze at the top, then lower with control and repeat.'] },
+    { name:'Lying Leg Curls', target:'3 × 10', cue:'Curl through the full range without lifting your hips off the pad.', sets:3, timed:false,
+      img:['Lying_Leg_Curls/0.jpg','Lying_Leg_Curls/1.jpg'],
+      steps:['Lie face down, machine pad positioned just below your calves.','Curl your legs up as far as possible, hold briefly at the top.','Lower back to the start under control and repeat.'] },
+    { name:'Single Leg Glute Bridge', target:'3 × 10/leg', cue:'Drive through the heel of the planted foot.', sets:3, timed:false,
+      img:['Single_Leg_Glute_Bridge/0.jpg','Single_Leg_Glute_Bridge/1.jpg'],
+      steps:['Lie on your back, knees bent, one leg raised toward your chest.','Drive through the heel of the grounded foot to raise your hips.','Extend fully, pause, then lower with control and repeat.'] },
+    { name:'Isometric Neck Exercise — Front &amp; Back', target:'3 × 15 sec each way', cue:'Start light — the neck responds to consistency, not heavy load.', sets:3, timed:true, seconds:15,
+      img:['Isometric_Neck_Exercise_-_Front_And_Back/0.jpg','Isometric_Neck_Exercise_-_Front_And_Back/1.jpg'],
+      steps:['Place both hands on your forehead; gently push forward while resisting with your hands.','Hold, breathing normally, then release slowly.','Repeat with your hands behind your head, pushing backward instead.'] },
+    { name:'Farmer\'s Walk', target:'3 × 40m', cue:'Don\'t let your shoulders round forward — grip and posture are the point.', sets:3, timed:false,
+      img:['Farmers_Walk/0.jpg','Farmers_Walk/1.jpg'],
+      steps:['Stand between two heavy dumbbells or kettlebells.','Grip and lift them by driving through your heels, keeping your back straight.','Walk tall in short, quick steps for the distance, breathing normally.'] }
   ]},
-  sat: { label:'Sat · Cardio (Longer)', list:[
-    { name:'Brisk Walk / Hike / Cycling', target:'40-45 min', cue:'Comfortable, sustained pace — your longest cardio session of the week.', sets:1, timed:true, seconds:2400 }
+  sat: { label:'Sat · Football (Match Day)', list:[
+    { name:'Dynamic Warm-up + Ball Touches', target:'10 min', cue:'Get the hips and ankles moving before you sprint.', sets:1, timed:true, seconds:600 },
+    { name:'Full Match / Scrimmage or Sprint Intervals', target:'60-90 min or 10 × 30m', cue:'This is your longest cardio session of the week — give it everything.', sets:1, timed:false },
+    { name:'Hip Flexor &amp; Hamstring Mobility', target:'5-10 min', cue:'Cool down properly — these are the muscles a desk job tightens most.', sets:1, timed:true, seconds:300 }
   ]},
   sun: { label:'Sun · Rest', list:[
     { name:'Full Rest', target:'—', cue:'No structured training today. Optional light stretching if you feel stiff — otherwise just recover.', sets:1, timed:false }
@@ -367,6 +449,8 @@ function renderExercises(){
     const doneCount = Array.from({length:ex.sets}).filter((_,s)=>setState[`${exerciseDay}_${i}_${s}`]).length;
     const pct = Math.round((doneCount/ex.sets)*100);
     const timerBtn = ex.timed ? `<button class="timer-btn" id="timerbtn-${exerciseDay}-${i}" onclick="startTimer('${exerciseDay}',${i},${ex.seconds})">Start ${fmtSeconds(ex.seconds)}</button>` : '';
+    const media = ex.img ? `<div class="ex-media"><span class="ex-media-tag">form</span><img data-frames='${JSON.stringify(ex.img)}' src="${IMG_BASE + ex.img[0]}" alt="${ex.name} demonstration" loading="lazy"></div>` : '';
+    const steps = ex.steps ? `<details class="ex-steps"><summary>How to</summary><ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol></details>` : '';
     return `
       <div class="exercise-card">
         <div class="ex-head">
@@ -374,11 +458,26 @@ function renderExercises(){
           <div class="ex-target">${ex.target}</div>
         </div>
         <div class="ex-cue">${ex.cue}</div>
+        ${media}
+        ${steps}
         <div class="sets-row">${circles}${timerBtn}</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
       </div>
     `;
   }).join('');
+}
+
+/* ---- animate exercise photos: alternate between the two real reference frames ---- */
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let mediaFrame = 0;
+if(!prefersReducedMotion){
+  setInterval(()=>{
+    mediaFrame = mediaFrame ? 0 : 1;
+    document.querySelectorAll('.ex-media img').forEach(img=>{
+      const frames = JSON.parse(img.dataset.frames);
+      img.src = IMG_BASE + frames[mediaFrame];
+    });
+  }, 900);
 }
 
 function toggleSet(day,i,s){

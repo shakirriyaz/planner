@@ -66,6 +66,7 @@
   .matchbar .seg.cat-meal{background:rgba(227,167,59,0.22);}
   .matchbar .seg.cat-work{background:#1c232c;}
   .matchbar .seg.cat-football{background:rgba(47,144,119,0.35);}
+  .matchbar .seg.cat-gym{background:rgba(227,167,59,0.35);}
   .matchbar .seg.cat-rest{background:#1c232c;}
   .matchbar .seg.cat-wind{background:#1a2029;}
   .marker{
@@ -199,7 +200,7 @@
   <div class="matchbar-label"><span>05:00</span><span>MATCH CLOCK</span><span>22:30</span></div>
   <div class="matchbar" id="matchbar"></div>
   <div class="matchbar-foot">
-    <span>▉ sleep/fast</span><span>▉ meal</span><span>▉ football</span><span>▉ work/rest</span>
+    <span>▉ sleep/fast</span><span>▉ meal</span><span>▉ gym</span><span>▉ football</span><span>▉ work/rest</span>
   </div>
 
   <div class="now-card">
@@ -242,22 +243,22 @@ const toMin = (h,m) => h*60+m;
 
 function baseSchedule(day){
   // day: 0=Sun..6=Sat
-  const isStrengthDay = [1,3,5].includes(day); // Mon/Wed/Fri
-  const isFootballDay = [2,4].includes(day); // Tue/Thu
+  const isStrengthDay = [1,3,4,5].includes(day); // Mon/Wed/Thu/Fri — the 4 gym days
+  const isFootballDay = [2,6].includes(day); // Tue/Sat
 
   return [
-    { start: toMin(5,0), end: toMin(5,25), cat:'move', title:'Wake + Morning Movement',
-      desc: isStrengthDay ? 'Water first. 15–20 min bodyweight strength: squats, push-ups, lunges, planks.' : 'Water first. Light 10 min stretch/mobility — no pressure today.' },
+    { start: toMin(5,0), end: toMin(5,25), cat:'move', title: isStrengthDay ? 'Wake + Gym Warm-up' : 'Wake + Morning Movement',
+      desc: isStrengthDay ? 'Water first. Today\'s full gym session is on the Recipes & Exercises page — warm up here, lift there.' : 'Water first. Light 10 min stretch/mobility — no pressure today.' },
     { start: toMin(5,25), end: toMin(6,0), cat:'work', title:'Get Ready', desc:'Shower, get dressed, out the door.' },
     { start: toMin(6,0), end: toMin(12,0), cat:'fast', title:'Fasted Window', desc:'Black tea/coffee only, no sugar. Commute + work. This is the fasting part of your 16:8 window.' },
-    { start: toMin(12,0), end: toMin(13,30), cat:'meal', title:'Lunch — Meal 1', desc:'Your biggest meal. Break the fast here, then relax before the nap.', meal:'lunch' },
+    { start: toMin(12,0), end: toMin(13,30), cat:'meal', title:'Lunch — Meal 1', desc:'Your biggest meal. Break the fast here, then relax before the nap. Daily target: 1,600 kcal · 160g protein · 60g carbs · 80g fat.', meal:'lunch' },
     { start: toMin(13,30), end: toMin(13,50), cat:'move', title:'Nap', desc:'20 min, hard alarm. Best natural post-lunch dip slot — won\'t affect night sleep.' },
     { start: toMin(13,50), end: toMin(16,0), cat:'work', title:'Work', desc:'Second block of the day.' },
     { start: toMin(16,0), end: toMin(16,30), cat:'meal', title:'Snack', desc:'Light protein snack — keeps you out of the biscuit/tea trap.', meal:'snack' },
     { start: toMin(16,30), end: toMin(18,0), cat:'work', title:'Work / Commute', desc:'Wrap up for the day.' },
-    { start: toMin(18,0), end: toMin(19,30), cat: isFootballDay ? 'football' : 'rest',
-      title: isFootballDay ? 'Football' : 'Free / Rest',
-      desc: isFootballDay ? 'Your main cardio session for the week — give it everything.' : 'No forced activity. Rest, or a slow walk if you feel like it.' },
+    { start: toMin(18,0), end: toMin(19,30), cat: isFootballDay ? 'football' : (isStrengthDay ? 'gym' : 'rest'),
+      title: isFootballDay ? 'Football' : (isStrengthDay ? 'Gym Session' : 'Free / Rest'),
+      desc: isFootballDay ? 'Your main cardio session for the week — give it everything.' : (isStrengthDay ? 'Today\'s lift — full exercise list with photos and steps on the Recipes & Exercises page.' : 'No forced activity. Rest, or a slow walk if you feel like it.') },
     { start: toMin(19,30), end: toMin(20,0), cat:'meal', title:'Dinner — Meal 2', desc:'Lighter than lunch. Closes your eating window at 8:00 PM.', meal:'dinner' },
     { start: toMin(20,0), end: toMin(21,45), cat:'wind', title:'Wind Down', desc:'No screens, dim lights. This is what actually makes an early bedtime possible.' },
     { start: toMin(21,45), end: toMin(22,0), cat:'wind', title:'Prayers', desc:'—' },
@@ -266,25 +267,27 @@ function baseSchedule(day){
   ];
 }
 
+const DAILY_TARGET = { kcal:1600, protein:160, carbs:60, fat:80 };
+
 const MEALS = {
   lunch: [
-    'Chicken Curry (200g chicken, onion-tomato gravy) + 1 roti + salad — ~48g protein',
-    'Egg Curry (3 eggs in gravy) + 1 cup dal + roti — ~33g protein',
-    'Tandoori/Grilled Chicken (200g, curd-marinated) + dal + salad — ~48g protein'
+    'Chicken Curry (250g chicken, no rice) + sautéed spinach/methi + salad — ~70g protein',
+    'Egg Curry (4 eggs, no rice) + sautéed spinach — ~34g protein',
+    'Tandoori/Grilled Chicken Breast (220g) + roasted veg — ~72g protein'
   ],
   snack: [
+    'Whey protein shake (1 scoop)',
     '2 boiled eggs',
-    '1 cup plain curd (unsweetened)',
-    'Small roasted chana (save for football days)'
+    'Grilled paneer cubes (75g)'
   ],
   dinner: [
-    'Egg Bhurji (3 eggs) + sautéed vegetables — ~21g protein',
-    'Chicken Stir-fry (150g) + mixed veg — ~38g protein',
-    'Clear Chicken Soup (200g bone-in) + veg — ~40g protein, easy on football evenings'
+    'Egg Bhurji + Paneer (50g) + sautéed greens — ~40g protein',
+    'Tandoori Chicken (200g) + sautéed vegetables — ~65g protein',
+    'Clear Chicken Soup (250g bone-in) + veg — ~48g protein, light before bed'
   ]
 };
 
-const CAT_LABEL = {sleep:'Sleep', move:'Movement', fast:'Fasted', meal:'Meal', work:'Work', football:'Football', rest:'Rest', wind:'Wind-down'};
+const CAT_LABEL = {sleep:'Sleep', move:'Movement', fast:'Fasted', meal:'Meal', work:'Work', football:'Football', gym:'Gym', rest:'Rest', wind:'Wind-down'};
 
 let previewMinutes = null; // null = use real clock
 
@@ -386,7 +389,7 @@ function render(){
   const ws = document.getElementById('weekstrip');
   ws.innerHTML = wnames.map((n,i)=>{
     const isToday = i===day;
-    const isFootball = [2,4].includes(i);
+    const isFootball = [2,6].includes(i);
     return `<div class="wday ${isToday?'today':''} ${isFootball?'football':''}">
       <div class="wl">${n}</div>
       <div class="wm">${isFootball?'⚽':'—'}</div>
